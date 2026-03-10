@@ -38,6 +38,7 @@
             --color-edit: #2196F3;       /* Azul para edición */
             --color-admin: #FF4081;      /* Rosa para funciones admin */
             --color-edit-certified: #9C27B0; /* Púrpura para editar certificadas */
+            --color-backup: #FF8C00;     /* Naranja oscuro para respaldo */
         }
 
         /* Estilos Generales (Diseño Pastel) */
@@ -975,6 +976,42 @@
             color: var(--color-text);
         }
 
+        /* NUEVA SECCIÓN: Estilos para respaldo de base de datos */
+        .backup-section {
+            border: 2px solid var(--color-backup);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #fff5e6;
+        }
+        
+        .backup-section h4 {
+            color: var(--color-backup);
+            border-bottom: 1px solid var(--color-backup);
+            margin-top: 0;
+        }
+        
+        .backup-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .backup-button {
+            background-color: var(--color-backup);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .backup-button:hover {
+            background-color: #e07c00;
+        }
+        
+        #import-file {
+            margin: 10px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -1530,6 +1567,21 @@
                     <!-- Los resultados del recálculo se mostrarán aquí -->
                 </div>
             </div>
+
+            <!-- NUEVA SECCIÓN: Respaldo de Base de Datos (Exportar/Importar JSON) -->
+            <div class="backup-section">
+                <h4>💾 Respaldo de Base de Datos (JSON)</h4>
+                <p>Exporte toda la información del sistema (órdenes, empresas, certificaciones y configuración) a un archivo JSON para su respaldo. Luego puede importar ese archivo para restaurar los datos.</p>
+                <div class="backup-buttons">
+                    <button class="backup-button" onclick="exportDatabase()">⬇️ Exportar Base de Datos (JSON)</button>
+                    <input type="file" id="import-file" accept=".json" style="display: none;">
+                    <button class="backup-button" onclick="document.getElementById('import-file').click()">⬆️ Importar Base de Datos (JSON)</button>
+                </div>
+                <p style="margin: 10px 0 0 0; font-size: 0.9em; color: #666;">
+                    <strong>Nota:</strong> La importación reemplazará TODOS los datos actuales en Firebase. Asegúrese de haber realizado un respaldo antes.
+                </p>
+            </div>
+
         </div>
 
     </div>
@@ -4690,7 +4742,7 @@
                                 Órdenes: ${certification['Órdenes Realizadas'].length}
                             </div>
                             <div>
-                                <button class="edit-certified-button" onclick="openEditCertificationAdvancedModal(${JSON.stringify(certification).replace(/"/g, '&quot;')})">
+                                <button class="edit-certified-button" onclick='openEditCertificationAdvancedModal(${JSON.stringify(certification).replace(/'/g, "\\'")})'>
                                     ✏️ Editar Avanzado
                                 </button>
                             </div>
@@ -6318,7 +6370,21 @@
                 }
             }
 
-            // *** 14. FUNCIONES DE EXPORTACIÓN E IMPORTACIÓN ***
+            // *** 14. FUNCIONES DE EXPORTACIÓN E IMPORTACIÓN DE BASE DE DATOS (JSON) ***
+
+            // Event listener para el input de archivo de importación
+            document.addEventListener('DOMContentLoaded', function() {
+                const importFileInput = document.getElementById('import-file');
+                if (importFileInput) {
+                    importFileInput.addEventListener('change', function(event) {
+                        if (event.target.files.length > 0) {
+                            importDatabase(event.target.files[0]);
+                        }
+                        // Limpiar el input para permitir seleccionar el mismo archivo nuevamente
+                        event.target.value = '';
+                    });
+                }
+            });
 
             async function exportDatabase() {
                 if (currentRole !== 'admin') {
