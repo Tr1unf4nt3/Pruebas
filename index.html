@@ -1329,6 +1329,11 @@
                             <label for="certification-year">Año:</label>
                             <input type="text" id="certification-year" disabled>
                         </p>
+                        <!-- NUEVO CAMPO: Mes -->
+                        <p>
+                            <label for="certification-month">Mes:</label>
+                            <input type="text" id="certification-month" disabled>
+                        </p>
                     </div>
                     
                     <div class="form-section">
@@ -1403,6 +1408,7 @@
                             <option value="Total">Total</option>
                             <option value="Fecha de Creación">Fecha de Creación</option>
                             <option value="Año">Año</option>
+                            <option value="Mes">Mes</option>
                         </select>
                     </div>
                     
@@ -1604,6 +1610,11 @@
                     <p>
                         <label for="certification-year">Año:</label>
                         <input type="text" id="certification-year" disabled>
+                    </p>
+                    <!-- NUEVO CAMPO: Mes -->
+                    <p>
+                        <label for="certification-month">Mes:</label>
+                        <input type="text" id="certification-month" disabled>
                     </p>
                 </div>
                 
@@ -1861,6 +1872,7 @@
                         { id: "user_auto_fill", label: "Usuario que Crea la Orden", type: "user-auto-fill", required: true },
                         { id: "current_date", label: "Fecha Actual", type: "date-auto", required: true },
                         { id: "current_year", label: "Año", type: "year-auto", required: true },
+                        { id: "current_month", label: "Mes", type: "month-auto", required: true }, // NUEVO CAMPO: Mes
                         { id: "trabajo_obra", label: "Trabajo Obra a realizar", type: "select", required: true, 
                           options: ["Construcción de Acometida", "Construcción Nodo Acceso", "Construcción ISP", "Construcción Feeder (Pedestales - Zanjados - Tanquillas - Instalación de Postes)", "Mantenimiento de Red", "Relevamiento"] },
                         { id: "municipio", label: "Municipio", type: "select", required: true, 
@@ -2501,7 +2513,7 @@
 
                         const fieldId = field.id;
                         
-                        const isFixedField = field.type === 'static' || field.type === 'ot_counter' || field.type === 'date-auto' || field.type === 'user-auto-fill' || field.type === 'year-auto';
+                        const isFixedField = field.type === 'static' || field.type === 'ot_counter' || field.type === 'date-auto' || field.type === 'user-auto-fill' || field.type === 'year-auto' || field.type === 'month-auto';
                         const requiredAttribute = field.required && !isFixedField ? 'required' : '';
 
                         switch (field.type) {
@@ -2523,6 +2535,10 @@
                                 break;
                             case 'year-auto':
                                 value = currentYear;
+                                inputHTML = `<input type="text" value="${value}" disabled>`;
+                                break;
+                            case 'month-auto': // NUEVO CAMPO: Mes
+                                value = currentMonth;
                                 inputHTML = `<input type="text" value="${value}" disabled>`;
                                 break;
                             case 'date-input':
@@ -2680,7 +2696,7 @@
 
                 for (const section of formStructure) {
                     for (const field of section.fields) {
-                        const isFixed = field.type === 'static' || field.type === 'ot_counter' || field.type === 'date-auto' || field.type === 'user-auto-fill' || field.type === 'year-auto';
+                        const isFixed = field.type === 'static' || field.type === 'ot_counter' || field.type === 'date-auto' || field.type === 'user-auto-fill' || field.type === 'year-auto' || field.type === 'month-auto';
                         
                         if (!field.required || isFixed) continue;
 
@@ -2724,6 +2740,7 @@
                         else if (field.type === 'user-auto-fill') value = currentUserEmail; 
                         else if (field.type === 'date-auto') value = caracasDate;
                         else if (field.type === 'year-auto') value = currentYear.toString();
+                        else if (field.type === 'month-auto') value = currentMonth; // NUEVO CAMPO: Mes
                         else if (field.type === 'static') value = field.value;
                         else {
                             const inputElement = document.getElementById(fieldId);
@@ -2889,7 +2906,7 @@
                                     </h1>
                                     
                                     <div style="text-align: right; margin-bottom: 25px; font-weight: bold; color: #555; font-size: 12px;">
-                                        Fecha de Emisión: ${data['Fecha Actual']} | Año: ${data['Año'] || getCurrentCaracasYear()}
+                                        Fecha de Emisión: ${data['Fecha Actual']} | Año: ${data['Año'] || getCurrentCaracasYear()} | Mes: ${data['Mes'] || getCurrentCaracasMonth()}
                                     </div>
                                 </div>
                                 
@@ -2910,7 +2927,7 @@
                                 const label = field.label;
                                 let value = data[label] || 'N/A';
                                 
-                                if (label === 'Título del Formulario' || label === 'Orden de Trabajo' || label === 'Fecha Actual') return;
+                                if (label === 'Título del Formulario' || label === 'Orden de Trabajo' || label === 'Fecha Actual' || label === 'Mes') return;
                                 
                                 const fieldDefinition = section.fields.find(f => f.label === label);
                                 if (fieldDefinition && fieldDefinition.type === 'date-input' && value !== 'N/A') {
@@ -3439,6 +3456,7 @@
                 document.getElementById('certification-number').value = order['Orden de Trabajo'];
                 document.getElementById('certification-date').value = getCurrentCaracasDate();
                 document.getElementById('certification-year').value = getCurrentCaracasYear();
+                document.getElementById('certification-month').value = getCurrentCaracasMonth(); // NUEVO CAMPO: Mes
                 document.getElementById('work-order-reference').value = order['Orden de Trabajo'];
                 
                 let companyName = '';
@@ -3461,10 +3479,24 @@
                 document.getElementById('contractor-company').value = companyName || 'No especificada';
                 document.getElementById('contractor-rif').value = companyRif || 'No especificado';
                 
+                // MODIFICACIÓN: Autocompletar los campos con los valores de la orden de trabajo
+                // Campo "Fin de la Obra" (end-date)
+                if (order['Fecha de Finalización']) {
+                    document.getElementById('end-date').value = order['Fecha de Finalización'];
+                } else {
+                    document.getElementById('end-date').value = '';
+                }
+                
+                // Campo "Importe total de la obra" (total-amount)
+                if (order['Presupuesto Total de la Obra']) {
+                    document.getElementById('total-amount').value = order['Presupuesto Total de la Obra'];
+                } else {
+                    document.getElementById('total-amount').value = '';
+                }
+                
+                // Limpiar campos que no se autocompletan
                 document.getElementById('start-date').value = '';
-                document.getElementById('end-date').value = '';
                 document.getElementById('work-details').value = '';
-                document.getElementById('total-amount').value = '';
                 document.getElementById('deviations').value = '';
                 
                 document.getElementById('certification-modal').style.display = 'flex';
@@ -3500,6 +3532,7 @@
                             'Número de Certificación': currentOrderForCertification['Orden de Trabajo'],
                             'Fecha de Certificación': getCurrentCaracasDate(),
                             'Año': getCurrentCaracasYear(),
+                            'Mes': getCurrentCaracasMonth(),
                             'Empresa Contratista': document.getElementById('contractor-company').value,
                             'Identificación Fiscal RIF': document.getElementById('contractor-rif').value,
                             'Fecha de Inicio': formatDateToDDMMYYYY(startDate),
@@ -3651,6 +3684,10 @@
                                         <tr>
                                             <td class="label">Año:</td>
                                             <td>${data['Certificación']?.['Año'] || getCurrentCaracasYear()}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label">Mes:</td>
+                                            <td>${data['Certificación']?.['Mes'] || getCurrentCaracasMonth()}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -3971,6 +4008,12 @@
                     certificationYear.value = getCurrentCaracasYear();
                 }
                 
+                // NUEVO CAMPO: Mes
+                const certificationMonth = document.getElementById('certification-month');
+                if (certificationMonth) {
+                    certificationMonth.value = getCurrentCaracasMonth();
+                }
+                
                 const companySelect = document.getElementById('certification-company');
                 if (companySelect) {
                     companySelect.innerHTML = '<option value="">Seleccionar empresa...</option>';
@@ -4137,6 +4180,7 @@
                         'Título del Formulario': 'Certificación Final',
                         'Número de Certificación Final': `(${currentMonth}-${finalCertificationCounter})`,
                         'Año': getCurrentCaracasYear(),
+                        'Mes': getCurrentCaracasMonth(),
                         'Empresa': selectedCompany,
                         'Órdenes Realizadas': selectedOrders,
                         'Total': totalAmount.toFixed(2),
@@ -4335,6 +4379,10 @@
                                             <td class="label">Año:</td>
                                             <td>${data['Año'] || getCurrentCaracasYear()}</td>
                                         </tr>
+                                        <tr>
+                                            <td class="label">Mes:</td>
+                                            <td>${data['Mes'] || getCurrentCaracasMonth()}</td>
+                                        </tr>
                                     </table>
                                 </div>
                                 
@@ -4524,6 +4572,7 @@
                             <strong>Total:</strong> ${parseFloat(certification['Total']).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} | 
                             <strong>Fecha:</strong> ${certification['Fecha de Creación']} | 
                             <strong>Año:</strong> ${certification['Año'] || getCurrentCaracasYear()} | 
+                            <strong>Mes:</strong> ${certification['Mes'] || getCurrentCaracasMonth()} | 
                             <strong>Órdenes:</strong> ${certification['Órdenes Realizadas'].length}
                         </div>
                     `;
@@ -4842,7 +4891,7 @@
                         const currentValue = order[field.label] || '';
                         
                         if (field.type === 'static' || field.type === 'ot_counter' || field.type === 'date-auto' || 
-                            field.type === 'user-auto-fill' || field.type === 'year-auto') {
+                            field.type === 'user-auto-fill' || field.type === 'year-auto' || field.type === 'month-auto') {
                             inputHTML = `<input type="text" id="edit_${field.id}" value="${currentValue}" disabled>`;
                         } else if (field.type === 'select') {
                             const options = field.options.map(opt => 
@@ -5024,9 +5073,9 @@
                     fieldRow.className = 'field-row';
                     
                     section.fields.forEach(field => {
-                        // No mostrar campos que son específicos de certificación
+                        // No mostrar campos que son específicos de certificación o fijos que no deben editarse
                         if (field.id === 'ot_number' || field.id === 'form_title' || field.id === 'current_date' || 
-                            field.id === 'current_year' || field.id === 'user_auto_fill') {
+                            field.id === 'current_year' || field.id === 'user_auto_fill' || field.id === 'current_month') {
                             return;
                         }
                         
@@ -5226,9 +5275,9 @@
                     
                     formStructure.forEach(section => {
                         section.fields.forEach(field => {
-                            // No incluir campos específicos de certificación
+                            // No incluir campos específicos de certificación o fijos que no deben editarse
                             if (field.id === 'ot_number' || field.id === 'form_title' || field.id === 'current_date' || 
-                                field.id === 'current_year' || field.id === 'user_auto_fill') {
+                                field.id === 'current_year' || field.id === 'user_auto_fill' || field.id === 'current_month') {
                                 return;
                             }
                             
@@ -6190,6 +6239,7 @@
                 if (selectedField === 'Total') fieldType = 'number';
                 if (selectedField === 'Fecha de Creación') fieldType = 'date';
                 if (selectedField === 'Año') fieldType = 'number';
+                if (selectedField === 'Mes') fieldType = 'text';
                 
                 if (selectedOperator === 'range' && (fieldType === 'number' || fieldType === 'date')) {
                     const rangeDiv = document.createElement('div');
@@ -6337,6 +6387,7 @@
                         const row = {
                             'Número de Certificación Final': certification['Número de Certificación Final'],
                             'Año': certification['Año'] || getCurrentCaracasYear(),
+                            'Mes': certification['Mes'] || getCurrentCaracasMonth(),
                             'Empresa': certification['Empresa'],
                             'Total': parseFloat(certification['Total']).toFixed(2),
                             'Fecha de Creación': certification['Fecha de Creación'],
@@ -6637,6 +6688,7 @@
                 availableFields.add('Título del Formulario');
                 availableFields.add('Fecha Actual');
                 availableFields.add('Año');
+                availableFields.add('Mes');
                 availableFields.add('Usuario que Crea la Orden');
                 availableFields.add('Tipo de Construcción Específica');
                 availableFields.add('Estado');
@@ -6644,7 +6696,7 @@
                 
                 formStructure.forEach(section => {
                     section.fields.forEach(field => {
-                        if (field.type !== 'static' && field.type !== 'ot_counter' && field.type !== 'date-auto' && field.type !== 'user-auto-fill' && field.type !== 'year-auto') {
+                        if (field.type !== 'static' && field.type !== 'ot_counter' && field.type !== 'date-auto' && field.type !== 'user-auto-fill' && field.type !== 'year-auto' && field.type !== 'month-auto') {
                             availableFields.add(field.label);
                         }
                     });
@@ -6856,6 +6908,7 @@
                 availableFields.add('Título del Formulario');
                 availableFields.add('Fecha Actual');
                 availableFields.add('Año');
+                availableFields.add('Mes');
                 availableFields.add('Fecha de Finalización');
                 availableFields.add('Usuario que Crea la Orden');
                 availableFields.add('Tipo de Construcción Específica');
@@ -6869,7 +6922,7 @@
                 formStructure.forEach(section => {
                     section.fields.forEach(field => {
                         if (field.type !== 'static' && field.type !== 'ot_counter' || 
-                            field.type !== 'date-auto' || field.type !== 'user-auto-fill' || field.type !== 'year-auto') {
+                            field.type !== 'date-auto' || field.type !== 'user-auto-fill' || field.type !== 'year-auto' || field.type !== 'month-auto') {
                             if (field.label) {
                                 availableFields.add(field.label);
                             }
