@@ -1643,7 +1643,8 @@
                         </p>
                         <p>
                             <label for="end-date">Fin de la Obra:</label>
-                            <input type="date" id="end-date" required>
+                            <!-- MODIFICACIÓN: Este campo ahora está deshabilitado -->
+                            <input type="date" id="end-date" disabled required>
                         </p>
                     </div>
                     
@@ -3480,10 +3481,11 @@
                 document.getElementById('contractor-company').value = companyName || 'No especificada';
                 document.getElementById('contractor-rif').value = companyRif || 'No especificado';
                 
-                // MODIFICACIÓN: Autocompletar los campos con los valores de la orden de trabajo
-                // Campo "Fin de la Obra" (end-date)
+                // MODIFICACIÓN: Autocompletar el campo "Fin de la Obra" (end-date) con el valor de la orden de trabajo y deshabilitarlo
                 if (order['Fecha de Finalización']) {
-                    document.getElementById('end-date').value = order['Fecha de Finalización'];
+                    const endDateInput = document.getElementById('end-date');
+                    endDateInput.value = formatDateToInput(order['Fecha de Finalización']);
+                    endDateInput.disabled = true; // Deshabilitar el campo
                 } else {
                     document.getElementById('end-date').value = '';
                 }
