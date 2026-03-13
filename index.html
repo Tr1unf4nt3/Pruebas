@@ -78,9 +78,10 @@
         }
 
         /* Estilo para campos autollenados/deshabilitados */
-        input:disabled {
+        input:disabled, input:read-only {
             background-color: #f0f0f0; 
             border: 1px dashed var(--color-secondary);
+            cursor: not-allowed;
         }
 
         /* Estilo de validación (el navegador se encarga de lo básico, pero esto ayuda) */
@@ -1656,7 +1657,8 @@
                     </p>
                     <p>
                         <label for="total-amount">Importe total de la obra:</label>
-                        <input type="number" id="total-amount" step="0.01" min="0" required placeholder="0.00">
+                        <!-- MODIFICACIÓN: Este campo ahora es de solo lectura (readonly) y se autocompleta -->
+                        <input type="number" id="total-amount" step="0.01" min="0" readonly required placeholder="0.00">
                     </p>
                 </div>
                 
@@ -3500,7 +3502,7 @@
                 document.getElementById('end-date').value = '';
             }
             
-            // Campo "Importe total de la obra" (total-amount)
+            // MODIFICACIÓN: Campo "Importe total de la obra" (total-amount) se autocompleta y se hace readonly
             if (order['Presupuesto Total de la Obra']) {
                 document.getElementById('total-amount').value = order['Presupuesto Total de la Obra'];
             } else {
