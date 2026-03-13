@@ -1014,6 +1014,93 @@
             margin: 10px 0;
         }
 
+        /* ESTILOS PARA PDF DE CERTIFICACIÓN - MODIFICADO PARA UNA SOLA PÁGINA */
+        #certification-pdf-container {
+            font-size: 9px !important;
+            line-height: 1.2 !important;
+            padding: 5mm !important;
+            max-height: 100%;
+            overflow: hidden;
+        }
+        
+        #certification-pdf-container h1 {
+            font-size: 14px !important;
+            margin-top: 0 !important;
+            margin-bottom: 5px !important;
+            padding-bottom: 3px !important;
+        }
+        
+        #certification-pdf-container h3 {
+            font-size: 11px !important;
+            margin-top: 3px !important;
+            margin-bottom: 3px !important;
+            padding: 2px 3px !important;
+            background-color: #F0F8FF !important;
+        }
+        
+        #certification-pdf-container table {
+            font-size: 8px !important;
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin-bottom: 2px !important;
+        }
+        
+        #certification-pdf-container td {
+            padding: 2px 3px !important;
+            border: 1px solid #B0C4DE !important;
+            vertical-align: top !important;
+        }
+        
+        #certification-pdf-container .label {
+            font-weight: bold !important;
+            background-color: #F0F8FF !important;
+            width: 35% !important;
+        }
+        
+        #certification-pdf-container .section {
+            margin-bottom: 3px !important;
+            page-break-inside: avoid !important;
+        }
+        
+        #certification-pdf-container .signature-section {
+            margin-top: 8px !important;
+            padding-top: 5px !important;
+            border-top: 1px dashed #B0C4DE !important;
+            page-break-inside: avoid !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+        }
+        
+        #certification-pdf-container .signature-box {
+            width: 45% !important;
+            text-align: center !important;
+        }
+        
+        #certification-pdf-container .signature-box strong {
+            font-size: 9px !important;
+        }
+        
+        #certification-pdf-container .signature-line {
+            border-top: 1px solid #36454F !important;
+            margin-top: 15px !important;
+            padding-top: 10px !important;
+            width: 100% !important;
+        }
+        
+        /* Forzar una sola página */
+        @media print {
+            @page {
+                margin: 5mm 5mm 5mm 5mm;
+                size: A4;
+            }
+            #certification-pdf-container {
+                font-size: 9px !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+            }
+        }
+        
         /* ESTILOS PARA PDF DE UNA SOLA PÁGINA */
         #pdf-print-container {
             font-size: 9px !important; /* Reducir tamaño de fuente general */
@@ -3565,14 +3652,15 @@
                 workOrders = workOrders.filter(order => order.id !== currentOrderForCertification.id);
                 completedOrders.push(certificationData);
                 
-                await generateCertificationPDF(certificationData);
+                // MODIFICACIÓN: Generar certificación PDF con estilos optimizados para una sola página
+                await generateCertificationPDFOptimized(certificationData);
                 
                 closeCertificationModal();
                 renderOrdersTable();
                 renderCompletedOrdersTable();
                 renderAdminEditTables();
                 
-                alert('✅ Orden finalizada exitosamente. Se ha generado la certificación en PDF.');
+                alert('✅ Orden finalizada exitosamente. Se ha generado la certificación en PDF (una sola página).');
                 
             } catch (error) {
                 console.error('Error al finalizar la orden:', error);
@@ -3580,67 +3668,99 @@
             }
         }
 
-        function generateCertificationPDF(data) {
+        // *** NUEVA FUNCIÓN: Generar PDF de certificación optimizado para una sola página ***
+        function generateCertificationPDFOptimized(data) {
             return new Promise((resolve, reject) => {
                 try {
                     const certificationNumber = data['Orden de Trabajo'];
                     const fileName = `Certificacion_Obra_${certificationNumber}.pdf`;
                     
-                    console.log('Generando PDF de certificación para orden:', certificationNumber);
+                    console.log('Generando PDF de certificación optimizado para una página:', certificationNumber);
 
-                    const certificationContent = `
+                    // Crear contenedor con estilos ultra compactos para una sola página
+                    const printContainer = document.createElement('div');
+                    printContainer.id = 'certification-pdf-container';
+                    printContainer.style.cssText = `
+                        position: absolute;
+                        left: -9999px;
+                        top: 0;
+                        width: 190mm;
+                        min-height: 277mm;
+                        background: white;
+                        padding: 5mm 5mm 3mm 5mm;
+                        font-family: Arial, sans-serif;
+                        box-sizing: border-box;
+                        line-height: 1.2;
+                        font-size: 9px;
+                    `;
+
+                    const certification = data['Certificación'] || {};
+
+                    const certificationHTML = `
                         <!DOCTYPE html>
                         <html>
                         <head>
                             <meta charset="UTF-8">
                             <style>
+                                * {
+                                    margin: 0;
+                                    padding: 0;
+                                    box-sizing: border-box;
+                                }
                                 body { 
-                                    font-family: Arial, sans-serif; 
-                                    margin: 8mm 20px 5mm 20px;
-                                    color: #36454F; 
-                                    line-height: 1.4;
-                                    background: white;
+                                    font-family: 'Arial', sans-serif;
+                                    color: #36454F;
+                                    line-height: 1.15;
+                                    font-size: 9px;
+                                    width: 100%;
+                                    margin: 0;
+                                    padding: 0;
                                 }
                                 h1 { 
-                                    color: #4682B4; 
-                                    text-align: center; 
-                                    border-bottom: 2px solid #4682B4; 
-                                    padding-bottom: 10px; 
-                                    margin-bottom: 20px; 
+                                    color: #4682B4;
+                                    text-align: center;
+                                    border-bottom: 1px solid #4682B4;
+                                    padding-bottom: 3px;
+                                    margin: 0 0 5px 0;
+                                    font-size: 14px;
+                                    font-weight: bold;
                                 }
                                 .section { 
-                                    margin-bottom: 25px; 
+                                    margin-bottom: 4px;
                                     page-break-inside: avoid;
                                 }
                                 .section h3 { 
-                                    color: #4682B4; 
-                                    border-left: 4px solid #4682B4; 
-                                    padding-left: 8px; 
-                                    margin-top: 0;
+                                    color: #4682B4;
+                                    border-left: 2px solid #4682B4;
+                                    padding-left: 3px;
+                                    margin: 2px 0 2px 0;
+                                    font-size: 10px;
+                                    background-color: #F0F8FF;
+                                    padding: 2px 3px;
                                 }
                                 table { 
-                                    width: 100%; 
-                                    border-collapse: collapse; 
-                                    margin-top: 10px;
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    margin: 0;
+                                    table-layout: fixed;
                                 }
                                 td { 
-                                    padding: 10px; 
-                                    border: 1px solid #B0C4DE; 
+                                    padding: 2px 3px;
+                                    border: 1px solid #B0C4DE;
                                     vertical-align: top;
+                                    font-size: 8px;
+                                    word-wrap: break-word;
                                 }
                                 .label { 
-                                    font-weight: bold; 
-                                    background-color: #F0F8FF; 
-                                    width: 35%; 
+                                    font-weight: bold;
+                                    background-color: #F0F8FF;
+                                    width: 35%;
                                 }
                                 .signature-section {
-                                    margin-top: 50px;
-                                    padding-top: 20px;
-                                    border-top: 2px dashed #B0C4DE;
-                                    width: 100%;
+                                    margin-top: 8px;
+                                    padding-top: 3px;
+                                    border-top: 1px dashed #B0C4DE;
                                     page-break-inside: avoid;
-                                }
-                                .signatures-container {
                                     display: flex;
                                     justify-content: space-between;
                                     width: 100%;
@@ -3649,19 +3769,22 @@
                                     width: 45%;
                                     text-align: center;
                                 }
+                                .signature-box strong {
+                                    font-size: 8px;
+                                }
                                 .signature-line {
-                                    border-bottom: 1px solid #000;
-                                    margin-top: 60px;
-                                    height: 1px;
+                                    border-top: 1px solid #36454F;
+                                    margin-top: 15px;
+                                    padding-top: 5px;
                                     width: 100%;
                                 }
                                 @media print {
                                     @page {
-                                        margin: 8mm 15mm 5mm 15mm;
+                                        margin: 5mm 5mm 5mm 5mm;
+                                        size: A4;
                                     }
-                                    body { margin: 0; }
+                                    body { margin: 0; padding: 0; }
                                     .section { page-break-inside: avoid; }
-                                    .signatures-container { display: flex; justify-content: space-between; }
                                     .signature-section { page-break-inside: avoid; }
                                 }
                             </style>
@@ -3678,15 +3801,15 @@
                                     </tr>
                                     <tr>
                                         <td class="label">Fecha de la Certificación:</td>
-                                        <td>${data['Certificación']?.['Fecha de Certificación'] || data['Fecha de Finalización'] || getCurrentCaracasDate()}</td>
+                                        <td>${certification['Fecha de Certificación'] || data['Fecha de Finalización'] || getCurrentCaracasDate()}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Año:</td>
-                                        <td>${data['Certificación']?.['Año'] || getCurrentCaracasYear()}</td>
+                                        <td>${certification['Año'] || getCurrentCaracasYear()}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Mes:</td>
-                                        <td>${data['Certificación']?.['Mes'] || getCurrentCaracasMonth()}</td>
+                                        <td>${certification['Mes'] || getCurrentCaracasMonth()}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -3696,11 +3819,11 @@
                                 <table>
                                     <tr>
                                         <td class="label">Empresa Contratista:</td>
-                                        <td>${data['Certificación']?.['Empresa Contratista'] || 'No especificada'}</td>
+                                        <td>${certification['Empresa Contratista'] || 'No especificada'}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Identificación Fiscal RIF:</td>
-                                        <td>${data['Certificación']?.['Identificación Fiscal RIF'] || 'No especificado'}</td>
+                                        <td>${certification['Identificación Fiscal RIF'] || 'No especificado'}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -3714,11 +3837,11 @@
                                     </tr>
                                     <tr>
                                         <td class="label">Fechas de Inicio:</td>
-                                        <td>${data['Certificación']?.['Fecha de Inicio'] || 'No especificada'}</td>
+                                        <td>${certification['Fecha de Inicio'] || 'No especificada'}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Fin de la Obra:</td>
-                                        <td>${data['Certificación']?.['Fecha de Fin'] || 'No especificada'}</td>
+                                        <td>${certification['Fecha de Fin'] || 'No especificada'}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -3728,11 +3851,11 @@
                                 <table>
                                     <tr>
                                         <td class="label">Detalle:</td>
-                                        <td style="white-space: pre-wrap; min-height: 100px;">${data['Certificación']?.['Detalle de Trabajos Realizados'] || 'No se especificaron detalles'}</td>
+                                        <td style="white-space: pre-wrap; min-height: 30px; line-height: 1.2;">${(certification['Detalle de Trabajos Realizados'] || 'No se especificaron detalles').substring(0, 400)}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Importe total de la obra:</td>
-                                        <td>${data['Certificación']?.['Importe Total de la Obra'] || 'No especificado'}</td>
+                                        <td><strong>${parseFloat(certification['Importe Total de la Obra'] || '0').toFixed(2)}</strong></td>
                                     </tr>
                                 </table>
                             </div>
@@ -3742,52 +3865,55 @@
                                 <table>
                                     <tr>
                                         <td class="label">Detalle de desviaciones:</td>
-                                        <td style="white-space: pre-wrap; min-height: 80px;">${data['Certificación']?.['Desviaciones y Justificación'] || 'No se registraron desviaciones'}</td>
+                                        <td style="white-space: pre-wrap; min-height: 20px;">${(certification['Desviaciones y Justificación'] || 'No se registraron desviaciones').substring(0, 200)}</td>
                                     </tr>
                                 </table>
                             </div>
                             
                             <div class="signature-section">
-                                <div class="signatures-container">
-                                    <div class="signature-box">
-                                        <strong>Firma Jefe Técnico (Firma/Sello)</strong>
-                                        <div class="signature-line"></div>
-                                    </div>
-                                    <div class="signature-box">
-                                        <strong>Firma Gerente Técnico (Firma/Sello)</strong>
-                                        <div class="signature-line"></div>
-                                    </div>
+                                <div class="signature-box">
+                                    <strong>Firma Jefe Técnico (Firma/Sello)</strong>
+                                    <div class="signature-line"></div>
+                                </div>
+                                <div class="signature-box">
+                                    <strong>Firma Gerente Técnico (Firma/Sello)</strong>
+                                    <div class="signature-line"></div>
                                 </div>
                             </div>
                         </body>
                         </html>
                     `;
 
-                    const printContainer = document.createElement('div');
-                    printContainer.innerHTML = certificationContent;
+                    printContainer.innerHTML = certificationHTML;
                     document.body.appendChild(printContainer);
 
                     const opt = {
-                        margin: 8,
+                        margin: [5, 5, 5, 5],
                         filename: fileName,
                         image: { 
                             type: 'jpeg', 
-                            quality: 0.98 
+                            quality: 0.95 
                         },
                         html2canvas: { 
-                            scale: 2,
+                            scale: 1.5,
                             useCORS: true,
-                            logging: true,
-                            backgroundColor: '#FFFFFF',
-                            onclone: function(clonedDoc) {
-                                console.log('Documento clonado para PDF de certificación');
-                            }
+                            logging: false,
+                            scrollX: 0,
+                            scrollY: 0,
+                            letterRendering: true,
+                            allowTaint: false,
+                            backgroundColor: '#FFFFFF'
                         },
                         jsPDF: { 
                             unit: 'mm', 
                             format: 'a4', 
                             orientation: 'portrait',
-                            compress: true
+                            compress: true,
+                            hotfixes: ["px_scaling"],
+                            precision: 16
+                        },
+                        pagebreak: { 
+                            mode: ['avoid-all', 'css', 'legacy']
                         }
                     };
 
@@ -3797,7 +3923,7 @@
                             .from(printContainer)
                             .save()
                             .then(() => {
-                                console.log('PDF de certificación generado exitosamente:', fileName);
+                                console.log('PDF de certificación generado exitosamente en una sola página:', fileName);
                                 if (document.body.contains(printContainer)) {
                                     document.body.removeChild(printContainer);
                                 }
@@ -3810,10 +3936,10 @@
                                 }
                                 reject(error);
                             });
-                    }, 1000);
+                    }, 500);
 
                 } catch (error) {
-                    console.error('Error en generateCertificationPDF:', error);
+                    console.error('Error en generateCertificationPDFOptimized:', error);
                     reject(error);
                 }
             });
@@ -3970,7 +4096,8 @@
                 certPdfBtn.style.backgroundColor = '#77DD77';
                 certPdfBtn.style.color = 'white';
                 certPdfBtn.style.marginLeft = '5px';
-                certPdfBtn.onclick = () => generateCertificationPDF(order);
+                // Usar la nueva función optimizada
+                certPdfBtn.onclick = () => generateCertificationPDFOptimized(order);
                 actionCell.appendChild(certPdfBtn);
                 
                 // Botón de edición avanzada para admin (incluye certificadas)
@@ -4626,7 +4753,8 @@
                         const certificationPdfButton = document.createElement('button');
                         certificationPdfButton.textContent = '📄 Certificación';
                         certificationPdfButton.className = 'order-pdf-button';
-                        certificationPdfButton.onclick = () => generateCertificationPDF(completeOrder);
+                        // Usar la nueva función optimizada
+                        certificationPdfButton.onclick = () => generateCertificationPDFOptimized(completeOrder);
                         
                         const orderPdfButton = document.createElement('button');
                         orderPdfButton.textContent = '📋 Orden';
