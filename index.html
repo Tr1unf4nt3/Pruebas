@@ -1014,6 +1014,44 @@
             margin: 10px 0;
         }
 
+        /* ESTILOS PARA PDF DE UNA SOLA PÁGINA */
+        #pdf-print-container {
+            font-size: 9px !important; /* Reducir tamaño de fuente general */
+            line-height: 1.2 !important;
+            padding: 5mm !important;
+        }
+        
+        #pdf-print-container h1 {
+            font-size: 14px !important;
+            margin-top: 0 !important;
+            margin-bottom: 5px !important;
+            padding-bottom: 3px !important;
+        }
+        
+        #pdf-print-container h3 {
+            font-size: 11px !important;
+            margin-top: 5px !important;
+            margin-bottom: 3px !important;
+            padding-left: 3px !important;
+        }
+        
+        #pdf-print-container table {
+            font-size: 8px !important;
+        }
+        
+        #pdf-print-container td {
+            padding: 2px 3px !important;
+        }
+        
+        #pdf-print-container .pdf-section {
+            margin-bottom: 3px !important;
+        }
+        
+        #pdf-print-container .signature-container {
+            margin-top: 10px !important;
+            padding-top: 5px !important;
+        }
+
     </style>
 </head>
 <body>
@@ -2896,37 +2934,31 @@
                         width: 190mm;
                         min-height: 277mm;
                         background: white;
-                        padding: 10mm;
+                        padding: 8mm 8mm 5mm 8mm;
                         font-family: Arial, sans-serif;
                         box-sizing: border-box;
-                        line-height: 1.4;
-                        font-size: 12px;
+                        line-height: 1.3;
+                        font-size: 9px;
                     `;
 
                     let formContentHTML = `
-                        <div style="font-family: 'Arial', sans-serif; color: #36454F; line-height: 1.4; width: 100%;">
+                        <div style="font-family: 'Arial', sans-serif; color: #36454F; line-height: 1.3; width: 100%; font-size: 9px;">
                             <div class="pdf-main-header">
-                                <h1 style="color: #4682B4; text-align: center; border-bottom: 2px solid #4682B4; padding-bottom: 10px; margin-bottom: 20px; font-size: 18px;">
+                                <h1 style="color: #4682B4; text-align: center; border-bottom: 1px solid #4682B4; padding-bottom: 3px; margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">
                                     ${data['Título del Formulario']} Nro. ${otNumber}
                                 </h1>
                                 
-                                <div style="text-align: right; margin-bottom: 25px; font-weight: bold; color: #555; font-size: 12px;">
+                                <div style="text-align: right; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 8px;">
                                     Fecha de Emisión: ${data['Fecha Actual']} | Año: ${data['Año'] || getCurrentCaracasYear()} | Mes: ${data['Mes'] || getCurrentCaracasMonth()}
-                                </div>
-                            </div>
-                            
-                            <div class="pdf-secondary-header" style="display: none;">
-                                <div style="text-align: right; font-weight: bold; color: #555; font-size: 11px; margin-bottom: 15px;">
-                                    ${data['Título del Formulario']} Nro. ${otNumber} - Fecha: ${data['Fecha Actual']} - Año: ${data['Año'] || getCurrentCaracasYear()} - Página <span class="page-number"></span>
                                 </div>
                             </div>
                     `;
 
                     formStructure.forEach((section, secIndex) => {
                         
-                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 20px; width: 100%; page-break-inside: avoid;">`;
-                        formContentHTML += `<h3 style="color: #4682B4; margin-top: 0; margin-bottom: 12px; border-left: 4px solid #4682B4; padding-left: 8px; font-size: 14px; page-break-after: avoid;">${section.title}</h3>`;
-                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px;">`;
+                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 3px; width: 100%; page-break-inside: avoid;">`;
+                        formContentHTML += `<h3 style="color: #4682B4; margin: 2px 0 2px 0; border-left: 2px solid #4682B4; padding-left: 3px; font-size: 10px; page-break-after: avoid;">${section.title}</h3>`;
+                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8px;">`;
                         
                         section.fields.forEach(field => {
                             const label = field.label;
@@ -2942,12 +2974,12 @@
                             const isLongText = field.type === 'textarea' || 
                                               /descripción|descripcion|detallada|detallado|observación|observacion|comentario|notas|detalle|ubicación|ubicacion/i.test(label);
                             
-                            let valueCellStyle = "padding: 8px 6px; vertical-align: top; border: 1px solid #B0C4DE; font-size: 11px;";
-                            let labelCellStyle = "padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE; font-size: 11px;";
+                            let valueCellStyle = "padding: 1px 2px; vertical-align: top; border: 1px solid #B0C4DE; font-size: 8px;";
+                            let labelCellStyle = "padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE; font-size: 8px;";
                             
                             if (isLongText) {
-                                valueCellStyle += " word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.4; min-height: 40px; page-break-inside: avoid;";
-                                value = formatLongTextForPDF(value, 70);
+                                valueCellStyle += " word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.2; min-height: 15px; page-break-inside: avoid;";
+                                value = formatLongTextForPDF(value, 80);
                             } else {
                                 valueCellStyle += " page-break-inside: avoid;";
                             }
@@ -2970,122 +3002,81 @@
                         const pagoVgtCANTV = data[`${prefix} | Pago x VGT CANTV a cargo de Inter`] || '0.00';
                         const pagoVgtEDC = data[`${prefix} | Pago x VGT EDC a cargo de Inter`] || '0.00'; 
                         
-                        const descripcionFormateada = formatLongTextForPDF(data[`${prefix} | Descripción`], 70);
+                        const descripcionFormateada = formatLongTextForPDF(data[`${prefix} | Descripción`], 80);
 
-                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 20px; width: 100%; page-break-inside: avoid;">`;
-                        formContentHTML += `<h3 style="color: #4682B4; margin-top: 0; margin-bottom: 12px; border-left: 4px solid #4682B4; padding-left: 8px; font-size: 14px; page-break-after: avoid;">${type}</h3>`;
-                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px;">`;
+                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 3px; width: 100%; page-break-inside: avoid;">`;
+                        formContentHTML += `<h3 style="color: #4682B4; margin: 2px 0 2px 0; border-left: 2px solid #4682B4; padding-left: 3px; font-size: 10px; page-break-after: avoid;">${type}</h3>`;
+                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8px;">`;
 
                         formContentHTML += `
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE;">Costo Proyectado de la Obra:</td>
-                                <td style="padding: 8px 6px; width: 65%; border: 1px solid #B0C4DE;">${data[`${prefix} | Costo Proyectado de la Obra`]}</td>
+                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE;">Costo Proyectado:</td>
+                                <td style="padding: 1px 2px; width: 65%; border: 1px solid #B0C4DE;">${data[`${prefix} | Costo Proyectado de la Obra`]}</td>
                             </tr>
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Pago realizado por:</td>
-                                <td style="padding: 8px 6px; border: 1px solid #B0C4DE;">${data[`${prefix} | Pago realizado por`]}</td>
+                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Pago realizado por:</td>
+                                <td style="padding: 1px 2px; border: 1px solid #B0C4DE;">${data[`${prefix} | Pago realizado por`]}</td>
                             </tr>
                             
                             <tr style="background-color: #e0f7fa; page-break-inside: avoid;">
-                                <td style="padding: 10px 6px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT CANTV a cargo de Inter:</td>
-                                <td style="padding: 10px 6px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtCANTV}</td>
+                                <td style="padding: 2px 2px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT CANTV:</td>
+                                <td style="padding: 2px 2px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtCANTV}</td>
                             </tr>
                             
                             <tr style="background-color: #e0f7fa; page-break-inside: avoid;">
-                                <td style="padding: 10px 6px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT EDC a cargo de Inter:</td>
-                                <td style="padding: 10px 6px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtEDC}</td>
+                                <td style="padding: 2px 2px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT EDC:</td>
+                                <td style="padding: 2px 2px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtEDC}</td>
                             </tr>
                             
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Descripción:</td>
-                                <td style="padding: 8px 6px; word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.4; min-height: 60px; border: 1px solid #B0C4DE; page-break-inside: avoid;">${descripcionFormateada}</td>
+                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Descripción:</td>
+                                <td style="padding: 1px 2px; word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.2; min-height: 20px; border: 1px solid #B0C4DE; page-break-inside: avoid;">${descripcionFormateada}</td>
                             </tr>
                             
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Abono Mensual a Recibir por el cliente:</td>
-                                <td style="padding: 8px 6px; border: 1px solid #B0C4DE;">${data[`${prefix} | Abono Mensual a Recibir por el cliente`]}</td>
+                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Abono Mensual:</td>
+                                <td style="padding: 1px 2px; border: 1px solid #B0C4DE;">${data[`${prefix} | Abono Mensual a Recibir por el cliente`]}</td>
                             </tr>
                         `;
 
                         formContentHTML += '</table></div>';
                     }
 
+                    // Sección de firmas reducida para ahorrar espacio
                     formContentHTML += `
-                        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px dashed #B0C4DE; width: 100%; page-break-inside: avoid;">
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; width: 100%;">
-                                <div style="width: 45%;">
-                                    Contratista:
-                                    <div style="border-top: 1px solid #36454F; margin-top: 5px; padding-top: 40px;"></div>
+                        <div style="margin-top: 10px; padding-top: 5px; border-top: 1px solid #B0C4DE; width: 100%; page-break-inside: avoid; font-size: 8px;">
+                            <div style="display: flex; justify-content: space-between; width: 100%;">
+                                <div style="width: 45%; text-align: center;">
+                                    <strong>Contratista</strong>
+                                    <div style="border-top: 1px solid #36454F; margin-top: 10px; padding-top: 15px;"></div>
                                 </div>
-                                <div style="width: 45%;">
-                                    Supervisor Técnico:
-                                    <div style="border-top: 1px solid #36454F; margin-top: 5px; padding-top: 40px;"></div>
+                                <div style="width: 45%; text-align: center;">
+                                    <strong>Supervisor Técnico</strong>
+                                    <div style="border-top: 1px solid #36454F; margin-top: 10px; padding-top: 15px;"></div>
                                 </div>
                             </div>
                         </div>
-                    `;
-
-                    formContentHTML += '</div>';
+                    </div>`;
 
                     const pageBreakCSS = `
                         <style>
                             @media print {
                                 @page {
-                                    margin: 8mm 10mm 5mm 10mm;
+                                    margin: 5mm 5mm 5mm 5mm;
                                     size: A4;
                                 }
-                                
-                                .pdf-main-header {
-                                    display: block;
+                                body {
+                                    margin: 0;
+                                    padding: 0;
+                                    font-family: Arial, sans-serif;
+                                    line-height: 1.2;
+                                    font-size: 8px;
                                 }
-                                
-                                .pdf-secondary-header {
-                                    display: block !important;
-                                    margin-bottom: 15px;
-                                    padding-bottom: 10px;
-                                    border-bottom: 1px solid #B0C4DE;
-                                }
-                                
-                                .pdf-section {
-                                    page-break-inside: avoid;
-                                    break-inside: avoid;
-                                }
-                                
-                                table {
-                                    page-break-inside: auto;
-                                }
-                                
-                                tr {
-                                    page-break-inside: avoid;
-                                    page-break-after: auto;
-                                }
-                                
-                                .keep-together {
-                                    page-break-inside: avoid;
-                                }
-                                
-                                .page-break {
-                                    page-break-before: always;
-                                }
-                                
-                                .signature-section {
-                                    page-break-before: avoid;
-                                    page-break-inside: avoid;
-                                }
-                                
-                                .signature-container {
-                                    position: relative;
-                                    margin-top: 20px;
-                                    page-break-inside: avoid;
-                                    break-inside: avoid;
-                                }
-                            }
-                            
-                            body {
-                                margin: 0;
-                                padding: 0;
-                                font-family: Arial, sans-serif;
-                                line-height: 1.4;
+                                .pdf-main-header { display: block; }
+                                .pdf-section { page-break-inside: avoid; break-inside: avoid; }
+                                table { page-break-inside: auto; }
+                                tr { page-break-inside: avoid; page-break-after: auto; }
+                                .signature-section { page-break-inside: avoid; break-inside: avoid; }
                             }
                         </style>
                     `;
@@ -3096,38 +3087,32 @@
                     console.log('Contenedor PDF creado y agregado al DOM');
 
                     const opt = {
-                        margin:       8,
-                        filename:     fileName,
-                        image:        { 
+                        margin: [5, 5, 5, 5],
+                        filename: fileName,
+                        image: { 
                             type: 'jpeg', 
-                            quality: 0.98 
+                            quality: 0.95 
                         },
-                        html2canvas:  { 
-                            scale: 2,
+                        html2canvas: { 
+                            scale: 1.5,
                             useCORS: true,
                             logging: false,
                             scrollX: 0,
                             scrollY: 0,
-                            onclone: function(clonedDoc) {
-                                const clonedContainer = clonedDoc.getElementById('pdf-print-container');
-                                if (clonedContainer) {
-                                    clonedContainer.style.position = 'relative';
-                                    clonedContainer.style.left = '0';
-                                    clonedContainer.style.top = '0';
-                                    
-                                    const pageNumbers = clonedDoc.querySelectorAll('.page-number');
-                                    pageNumbers.forEach((span, index) => {
-                                        span.textContent = (index + 2);
-                                    });
-                                }
-                            }
+                            letterRendering: true,
+                            allowTaint: false,
+                            backgroundColor: '#FFFFFF'
                         },
-                        jsPDF:        { 
+                        jsPDF: { 
                             unit: 'mm', 
                             format: 'a4', 
                             orientation: 'portrait',
                             compress: true,
-                            hotfixes: ["px_scaling"]
+                            hotfixes: ["px_scaling"],
+                            precision: 16
+                        },
+                        pagebreak: { 
+                            mode: ['avoid-all', 'css', 'legacy']
                         }
                     };
 
@@ -3146,7 +3131,7 @@
                             .from(printContainer)
                             .save()
                             .then(() => {
-                                console.log('PDF generado y descargado exitosamente:', fileName);
+                                console.log('PDF generado y descargado exitosamente en una sola página:', fileName);
                                 if (document.body.contains(printContainer)) {
                                     document.body.removeChild(printContainer);
                                 }
@@ -3159,7 +3144,7 @@
                                 }
                                 reject(error);
                             });
-                    }, 1000);
+                    }, 500);
 
                 } catch (error) {
                     console.error('Error en generatePDF:', error);
