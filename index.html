@@ -1021,6 +1021,7 @@
             padding: 5mm !important;
             max-height: 100%;
             overflow: hidden;
+            background-color: white;
         }
         
         #certification-pdf-container h1 {
@@ -1028,6 +1029,9 @@
             margin-top: 0 !important;
             margin-bottom: 5px !important;
             padding-bottom: 3px !important;
+            color: #4682B4;
+            text-align: center;
+            border-bottom: 1px solid #4682B4;
         }
         
         #certification-pdf-container h3 {
@@ -1036,6 +1040,8 @@
             margin-bottom: 3px !important;
             padding: 2px 3px !important;
             background-color: #F0F8FF !important;
+            color: #4682B4;
+            border-left: 2px solid #4682B4;
         }
         
         #certification-pdf-container table {
@@ -1049,6 +1055,7 @@
             padding: 2px 3px !important;
             border: 1px solid #B0C4DE !important;
             vertical-align: top !important;
+            word-wrap: break-word;
         }
         
         #certification-pdf-container .label {
@@ -1103,7 +1110,7 @@
         
         /* ESTILOS PARA PDF DE UNA SOLA PÁGINA */
         #pdf-print-container {
-            font-size: 9px !important; /* Reducir tamaño de fuente general */
+            font-size: 9px !important;
             line-height: 1.2 !important;
             padding: 5mm !important;
         }
@@ -3593,83 +3600,8 @@
             currentOrderForCertification = null;
         }
 
-        async function completeWorkOrder() {
-            if (!currentOrderForCertification) {
-                alert('Error: No hay orden seleccionada para finalizar.');
-                return;
-            }
-
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const workDetails = document.getElementById('work-details').value;
-            const totalAmount = document.getElementById('total-amount').value;
-
-            if (!startDate || !endDate || !workDetails || !totalAmount) {
-                alert('Por favor, complete todos los campos obligatorios del formulario de certificación.');
-                return;
-            }
-
-            try {
-                const certificationData = {
-                    ...currentOrderForCertification,
-                    'Estado': 'Finalizada',
-                    'Fecha de Finalización': getCurrentCaracasDate(),
-                    'Certificación': {
-                        'Número de Certificación': currentOrderForCertification['Orden de Trabajo'],
-                        'Fecha de Certificación': getCurrentCaracasDate(),
-                        'Año': getCurrentCaracasYear(),
-                        'Mes': getCurrentCaracasMonth(),
-                        'Empresa Contratista': document.getElementById('contractor-company').value,
-                        'Identificación Fiscal RIF': document.getElementById('contractor-rif').value,
-                        'Fecha de Inicio': formatDateToDDMMYYYY(startDate),
-                        'Fecha de Fin': formatDateToDDMMYYYY(endDate),
-                        'Detalle de Trabajos Realizados': workDetails,
-                        'Importe Total de la Obra': totalAmount,
-                        'Desviaciones y Justificación': document.getElementById('deviations').value
-                    },
-                    'Última modificación': getCurrentCaracasDate(),
-                    'Modificado por': firebase.auth().currentUser.email
-                };
-
-                // Registrar historial antes de mover
-                await logChangeHistory(
-                    'FINALIZACIÓN',
-                    'Orden de Trabajo',
-                    currentOrderForCertification.id,
-                    currentOrderForCertification['Orden de Trabajo'],
-                    { 
-                        tipo: 'finalizacion_certificacion', 
-                        importe_anterior: currentOrderForCertification['Certificación']?.['Importe Total de la Obra'] || 'N/A',
-                        importe_nuevo: totalAmount,
-                        detalles: 'Orden finalizada con certificación'
-                    },
-                    firebase.auth().currentUser.email
-                );
-
-                await COMPLETED_ORDERS_COLLECTION.add(certificationData);
-                await ORDERS_COLLECTION.doc(currentOrderForCertification.id).delete();
-                
-                workOrders = workOrders.filter(order => order.id !== currentOrderForCertification.id);
-                completedOrders.push(certificationData);
-                
-                // MODIFICACIÓN: Generar certificación PDF con estilos optimizados para una sola página
-                await generateCertificationPDFOptimized(certificationData);
-                
-                closeCertificationModal();
-                renderOrdersTable();
-                renderCompletedOrdersTable();
-                renderAdminEditTables();
-                
-                alert('✅ Orden finalizada exitosamente. Se ha generado la certificación en PDF (una sola página).');
-                
-            } catch (error) {
-                console.error('Error al finalizar la orden:', error);
-                alert('Error al finalizar la orden: ' + error.message);
-            }
-        }
-
         // *** NUEVA FUNCIÓN: Generar PDF de certificación optimizado para una sola página ***
-        function generateCertificationPDFOptimized(data) {
+        function generateCertificationPDF(data) {
             return new Promise((resolve, reject) => {
                 try {
                     const certificationNumber = data['Orden de Trabajo'];
@@ -3692,6 +3624,7 @@
                         box-sizing: border-box;
                         line-height: 1.2;
                         font-size: 9px;
+                        overflow: hidden;
                     `;
 
                     const certification = data['Certificación'] || {};
@@ -3855,7 +3788,7 @@
                                     </tr>
                                     <tr>
                                         <td class="label">Importe total de la obra:</td>
-                                        <td><strong>${parseFloat(certification['Importe Total de la Obra'] || '0').toFixed(2)}</strong></td>
+                                        <td><strong>${parseFloat(certification['Importe Total de la Obra'] || '0').toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
                                     </tr>
                                 </table>
                             </div>
@@ -3939,10 +3872,85 @@
                     }, 500);
 
                 } catch (error) {
-                    console.error('Error en generateCertificationPDFOptimized:', error);
+                    console.error('Error en generateCertificationPDF:', error);
                     reject(error);
                 }
             });
+        }
+
+        async function completeWorkOrder() {
+            if (!currentOrderForCertification) {
+                alert('Error: No hay orden seleccionada para finalizar.');
+                return;
+            }
+
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const workDetails = document.getElementById('work-details').value;
+            const totalAmount = document.getElementById('total-amount').value;
+
+            if (!startDate || !endDate || !workDetails || !totalAmount) {
+                alert('Por favor, complete todos los campos obligatorios del formulario de certificación.');
+                return;
+            }
+
+            try {
+                const certificationData = {
+                    ...currentOrderForCertification,
+                    'Estado': 'Finalizada',
+                    'Fecha de Finalización': getCurrentCaracasDate(),
+                    'Certificación': {
+                        'Número de Certificación': currentOrderForCertification['Orden de Trabajo'],
+                        'Fecha de Certificación': getCurrentCaracasDate(),
+                        'Año': getCurrentCaracasYear(),
+                        'Mes': getCurrentCaracasMonth(),
+                        'Empresa Contratista': document.getElementById('contractor-company').value,
+                        'Identificación Fiscal RIF': document.getElementById('contractor-rif').value,
+                        'Fecha de Inicio': formatDateToDDMMYYYY(startDate),
+                        'Fecha de Fin': formatDateToDDMMYYYY(endDate),
+                        'Detalle de Trabajos Realizados': workDetails,
+                        'Importe Total de la Obra': totalAmount,
+                        'Desviaciones y Justificación': document.getElementById('deviations').value
+                    },
+                    'Última modificación': getCurrentCaracasDate(),
+                    'Modificado por': firebase.auth().currentUser.email
+                };
+
+                // Registrar historial antes de mover
+                await logChangeHistory(
+                    'FINALIZACIÓN',
+                    'Orden de Trabajo',
+                    currentOrderForCertification.id,
+                    currentOrderForCertification['Orden de Trabajo'],
+                    { 
+                        tipo: 'finalizacion_certificacion', 
+                        importe_anterior: currentOrderForCertification['Certificación']?.['Importe Total de la Obra'] || 'N/A',
+                        importe_nuevo: totalAmount,
+                        detalles: 'Orden finalizada con certificación'
+                    },
+                    firebase.auth().currentUser.email
+                );
+
+                await COMPLETED_ORDERS_COLLECTION.add(certificationData);
+                await ORDERS_COLLECTION.doc(currentOrderForCertification.id).delete();
+                
+                workOrders = workOrders.filter(order => order.id !== currentOrderForCertification.id);
+                completedOrders.push(certificationData);
+                
+                // Llamar a la función optimizada de PDF
+                await generateCertificationPDF(certificationData);
+                
+                closeCertificationModal();
+                renderOrdersTable();
+                renderCompletedOrdersTable();
+                renderAdminEditTables();
+                
+                alert('✅ Orden finalizada exitosamente. Se ha generado la certificación en PDF (una sola página).');
+                
+            } catch (error) {
+                console.error('Error al finalizar la orden:', error);
+                alert('Error al finalizar la orden: ' + error.message);
+            }
         }
 
         // *** MEJORA: Funciones para edición avanzada ***
@@ -4097,7 +4105,7 @@
                 certPdfBtn.style.color = 'white';
                 certPdfBtn.style.marginLeft = '5px';
                 // Usar la nueva función optimizada
-                certPdfBtn.onclick = () => generateCertificationPDFOptimized(order);
+                certPdfBtn.onclick = () => generateCertificationPDF(order);
                 actionCell.appendChild(certPdfBtn);
                 
                 // Botón de edición avanzada para admin (incluye certificadas)
@@ -4754,7 +4762,7 @@
                         certificationPdfButton.textContent = '📄 Certificación';
                         certificationPdfButton.className = 'order-pdf-button';
                         // Usar la nueva función optimizada
-                        certificationPdfButton.onclick = () => generateCertificationPDFOptimized(completeOrder);
+                        certificationPdfButton.onclick = () => generateCertificationPDF(completeOrder);
                         
                         const orderPdfButton = document.createElement('button');
                         orderPdfButton.textContent = '📋 Orden';
