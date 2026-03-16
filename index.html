@@ -3730,11 +3730,11 @@
                                 <table>
                                     <tr>
                                         <td class="label">Número de Certificación:</td>
-                                        <td>${certificationNumber}</td>
+                                        <td>${certification['Número de Certificación'] || certificationNumber}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Fecha de la Certificación:</td>
-                                        <td>${certification['Fecha de Certificación'] || data['Fecha de Finalización'] || getCurrentCaracasDate()}</td>
+                                        <td>${certification['Fecha de Certificación'] || getCurrentCaracasDate()}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Año:</td>
