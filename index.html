@@ -1014,138 +1014,6 @@
             margin: 10px 0;
         }
 
-        /* ESTILOS PARA PDF DE CERTIFICACIÓN - MODIFICADO PARA UNA SOLA PÁGINA */
-        #certification-pdf-container {
-            font-size: 9px !important;
-            line-height: 1.2 !important;
-            padding: 5mm !important;
-            max-height: 100%;
-            overflow: hidden;
-            background-color: white;
-        }
-        
-        #certification-pdf-container h1 {
-            font-size: 14px !important;
-            margin-top: 0 !important;
-            margin-bottom: 5px !important;
-            padding-bottom: 3px !important;
-            color: #4682B4;
-            text-align: center;
-            border-bottom: 1px solid #4682B4;
-        }
-        
-        #certification-pdf-container h3 {
-            font-size: 11px !important;
-            margin-top: 3px !important;
-            margin-bottom: 3px !important;
-            padding: 2px 3px !important;
-            background-color: #F0F8FF !important;
-            color: #4682B4;
-            border-left: 2px solid #4682B4;
-        }
-        
-        #certification-pdf-container table {
-            font-size: 8px !important;
-            width: 100% !important;
-            border-collapse: collapse !important;
-            margin-bottom: 2px !important;
-        }
-        
-        #certification-pdf-container td {
-            padding: 2px 3px !important;
-            border: 1px solid #B0C4DE !important;
-            vertical-align: top !important;
-            word-wrap: break-word;
-        }
-        
-        #certification-pdf-container .label {
-            font-weight: bold !important;
-            background-color: #F0F8FF !important;
-            width: 35% !important;
-        }
-        
-        #certification-pdf-container .section {
-            margin-bottom: 3px !important;
-            page-break-inside: avoid !important;
-        }
-        
-        #certification-pdf-container .signature-section {
-            margin-top: 8px !important;
-            padding-top: 5px !important;
-            border-top: 1px dashed #B0C4DE !important;
-            page-break-inside: avoid !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            width: 100% !important;
-        }
-        
-        #certification-pdf-container .signature-box {
-            width: 45% !important;
-            text-align: center !important;
-        }
-        
-        #certification-pdf-container .signature-box strong {
-            font-size: 9px !important;
-        }
-        
-        #certification-pdf-container .signature-line {
-            border-top: 1px solid #36454F !important;
-            margin-top: 15px !important;
-            padding-top: 10px !important;
-            width: 100% !important;
-        }
-        
-        /* Forzar una sola página */
-        @media print {
-            @page {
-                margin: 5mm 5mm 5mm 5mm;
-                size: A4;
-            }
-            #certification-pdf-container {
-                font-size: 9px !important;
-                page-break-after: avoid !important;
-                page-break-inside: avoid !important;
-            }
-        }
-        
-        /* ESTILOS PARA PDF DE UNA SOLA PÁGINA */
-        #pdf-print-container {
-            font-size: 9px !important;
-            line-height: 1.2 !important;
-            padding: 5mm !important;
-        }
-        
-        #pdf-print-container h1 {
-            font-size: 14px !important;
-            margin-top: 0 !important;
-            margin-bottom: 5px !important;
-            padding-bottom: 3px !important;
-        }
-        
-        #pdf-print-container h3 {
-            font-size: 11px !important;
-            margin-top: 5px !important;
-            margin-bottom: 3px !important;
-            padding-left: 3px !important;
-        }
-        
-        #pdf-print-container table {
-            font-size: 8px !important;
-        }
-        
-        #pdf-print-container td {
-            padding: 2px 3px !important;
-        }
-        
-        #pdf-print-container .pdf-section {
-            margin-bottom: 3px !important;
-        }
-        
-        #pdf-print-container .signature-container {
-            margin-top: 10px !important;
-            padding-top: 5px !important;
-        }
-
     </style>
 </head>
 <body>
@@ -3028,31 +2896,37 @@
                         width: 190mm;
                         min-height: 277mm;
                         background: white;
-                        padding: 8mm 8mm 5mm 8mm;
+                        padding: 10mm;
                         font-family: Arial, sans-serif;
                         box-sizing: border-box;
-                        line-height: 1.3;
-                        font-size: 9px;
+                        line-height: 1.4;
+                        font-size: 12px;
                     `;
 
                     let formContentHTML = `
-                        <div style="font-family: 'Arial', sans-serif; color: #36454F; line-height: 1.3; width: 100%; font-size: 9px;">
+                        <div style="font-family: 'Arial', sans-serif; color: #36454F; line-height: 1.4; width: 100%;">
                             <div class="pdf-main-header">
-                                <h1 style="color: #4682B4; text-align: center; border-bottom: 1px solid #4682B4; padding-bottom: 3px; margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">
+                                <h1 style="color: #4682B4; text-align: center; border-bottom: 2px solid #4682B4; padding-bottom: 10px; margin-bottom: 20px; font-size: 18px;">
                                     ${data['Título del Formulario']} Nro. ${otNumber}
                                 </h1>
                                 
-                                <div style="text-align: right; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 8px;">
+                                <div style="text-align: right; margin-bottom: 25px; font-weight: bold; color: #555; font-size: 12px;">
                                     Fecha de Emisión: ${data['Fecha Actual']} | Año: ${data['Año'] || getCurrentCaracasYear()} | Mes: ${data['Mes'] || getCurrentCaracasMonth()}
+                                </div>
+                            </div>
+                            
+                            <div class="pdf-secondary-header" style="display: none;">
+                                <div style="text-align: right; font-weight: bold; color: #555; font-size: 11px; margin-bottom: 15px;">
+                                    ${data['Título del Formulario']} Nro. ${otNumber} - Fecha: ${data['Fecha Actual']} - Año: ${data['Año'] || getCurrentCaracasYear()} - Página <span class="page-number"></span>
                                 </div>
                             </div>
                     `;
 
                     formStructure.forEach((section, secIndex) => {
                         
-                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 3px; width: 100%; page-break-inside: avoid;">`;
-                        formContentHTML += `<h3 style="color: #4682B4; margin: 2px 0 2px 0; border-left: 2px solid #4682B4; padding-left: 3px; font-size: 10px; page-break-after: avoid;">${section.title}</h3>`;
-                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8px;">`;
+                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 20px; width: 100%; page-break-inside: avoid;">`;
+                        formContentHTML += `<h3 style="color: #4682B4; margin-top: 0; margin-bottom: 12px; border-left: 4px solid #4682B4; padding-left: 8px; font-size: 14px; page-break-after: avoid;">${section.title}</h3>`;
+                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px;">`;
                         
                         section.fields.forEach(field => {
                             const label = field.label;
@@ -3068,12 +2942,12 @@
                             const isLongText = field.type === 'textarea' || 
                                               /descripción|descripcion|detallada|detallado|observación|observacion|comentario|notas|detalle|ubicación|ubicacion/i.test(label);
                             
-                            let valueCellStyle = "padding: 1px 2px; vertical-align: top; border: 1px solid #B0C4DE; font-size: 8px;";
-                            let labelCellStyle = "padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE; font-size: 8px;";
+                            let valueCellStyle = "padding: 8px 6px; vertical-align: top; border: 1px solid #B0C4DE; font-size: 11px;";
+                            let labelCellStyle = "padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE; font-size: 11px;";
                             
                             if (isLongText) {
-                                valueCellStyle += " word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.2; min-height: 15px; page-break-inside: avoid;";
-                                value = formatLongTextForPDF(value, 80);
+                                valueCellStyle += " word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.4; min-height: 40px; page-break-inside: avoid;";
+                                value = formatLongTextForPDF(value, 70);
                             } else {
                                 valueCellStyle += " page-break-inside: avoid;";
                             }
@@ -3096,81 +2970,122 @@
                         const pagoVgtCANTV = data[`${prefix} | Pago x VGT CANTV a cargo de Inter`] || '0.00';
                         const pagoVgtEDC = data[`${prefix} | Pago x VGT EDC a cargo de Inter`] || '0.00'; 
                         
-                        const descripcionFormateada = formatLongTextForPDF(data[`${prefix} | Descripción`], 80);
+                        const descripcionFormateada = formatLongTextForPDF(data[`${prefix} | Descripción`], 70);
 
-                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 3px; width: 100%; page-break-inside: avoid;">`;
-                        formContentHTML += `<h3 style="color: #4682B4; margin: 2px 0 2px 0; border-left: 2px solid #4682B4; padding-left: 3px; font-size: 10px; page-break-after: avoid;">${type}</h3>`;
-                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8px;">`;
+                        formContentHTML += `<div class="pdf-section" style="margin-bottom: 20px; width: 100%; page-break-inside: avoid;">`;
+                        formContentHTML += `<h3 style="color: #4682B4; margin-top: 0; margin-bottom: 12px; border-left: 4px solid #4682B4; padding-left: 8px; font-size: 14px; page-break-after: avoid;">${type}</h3>`;
+                        formContentHTML += `<table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px;">`;
 
                         formContentHTML += `
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE;">Costo Proyectado:</td>
-                                <td style="padding: 1px 2px; width: 65%; border: 1px solid #B0C4DE;">${data[`${prefix} | Costo Proyectado de la Obra`]}</td>
+                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; width: 35%; border: 1px solid #B0C4DE;">Costo Proyectado de la Obra:</td>
+                                <td style="padding: 8px 6px; width: 65%; border: 1px solid #B0C4DE;">${data[`${prefix} | Costo Proyectado de la Obra`]}</td>
                             </tr>
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Pago realizado por:</td>
-                                <td style="padding: 1px 2px; border: 1px solid #B0C4DE;">${data[`${prefix} | Pago realizado por`]}</td>
+                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Pago realizado por:</td>
+                                <td style="padding: 8px 6px; border: 1px solid #B0C4DE;">${data[`${prefix} | Pago realizado por`]}</td>
                             </tr>
                             
                             <tr style="background-color: #e0f7fa; page-break-inside: avoid;">
-                                <td style="padding: 2px 2px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT CANTV:</td>
-                                <td style="padding: 2px 2px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtCANTV}</td>
+                                <td style="padding: 10px 6px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT CANTV a cargo de Inter:</td>
+                                <td style="padding: 10px 6px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtCANTV}</td>
                             </tr>
                             
                             <tr style="background-color: #e0f7fa; page-break-inside: avoid;">
-                                <td style="padding: 2px 2px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT EDC:</td>
-                                <td style="padding: 2px 2px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtEDC}</td>
+                                <td style="padding: 10px 6px; font-weight: bold; border: 1px solid #B0C4DE;">Pago x VGT EDC a cargo de Inter:</td>
+                                <td style="padding: 10px 6px; font-weight: bold; background-color: #ADD8E6; border: 1px solid #B0C4DE;">${pagoVgtEDC}</td>
                             </tr>
                             
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Descripción:</td>
-                                <td style="padding: 1px 2px; word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.2; min-height: 20px; border: 1px solid #B0C4DE; page-break-inside: avoid;">${descripcionFormateada}</td>
+                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Descripción:</td>
+                                <td style="padding: 8px 6px; word-wrap: break-word; word-break: break-word; white-space: pre-wrap; line-height: 1.4; min-height: 60px; border: 1px solid #B0C4DE; page-break-inside: avoid;">${descripcionFormateada}</td>
                             </tr>
                             
                             <tr style="page-break-inside: avoid;">
-                                <td style="padding: 1px 2px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Abono Mensual:</td>
-                                <td style="padding: 1px 2px; border: 1px solid #B0C4DE;">${data[`${prefix} | Abono Mensual a Recibir por el cliente`]}</td>
+                                <td style="padding: 8px 6px; font-weight: bold; background-color: #F0F8FF; vertical-align: top; border: 1px solid #B0C4DE;">Abono Mensual a Recibir por el cliente:</td>
+                                <td style="padding: 8px 6px; border: 1px solid #B0C4DE;">${data[`${prefix} | Abono Mensual a Recibir por el cliente`]}</td>
                             </tr>
                         `;
 
                         formContentHTML += '</table></div>';
                     }
 
-                    // Sección de firmas reducida para ahorrar espacio
                     formContentHTML += `
-                        <div style="margin-top: 10px; padding-top: 5px; border-top: 1px solid #B0C4DE; width: 100%; page-break-inside: avoid; font-size: 8px;">
-                            <div style="display: flex; justify-content: space-between; width: 100%;">
-                                <div style="width: 45%; text-align: center;">
-                                    <strong>Contratista</strong>
-                                    <div style="border-top: 1px solid #36454F; margin-top: 10px; padding-top: 15px;"></div>
+                        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px dashed #B0C4DE; width: 100%; page-break-inside: avoid;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; width: 100%;">
+                                <div style="width: 45%;">
+                                    Contratista:
+                                    <div style="border-top: 1px solid #36454F; margin-top: 5px; padding-top: 40px;"></div>
                                 </div>
-                                <div style="width: 45%; text-align: center;">
-                                    <strong>Supervisor Técnico</strong>
-                                    <div style="border-top: 1px solid #36454F; margin-top: 10px; padding-top: 15px;"></div>
+                                <div style="width: 45%;">
+                                    Supervisor Técnico:
+                                    <div style="border-top: 1px solid #36454F; margin-top: 5px; padding-top: 40px;"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>`;
+                    `;
+
+                    formContentHTML += '</div>';
 
                     const pageBreakCSS = `
                         <style>
                             @media print {
                                 @page {
-                                    margin: 5mm 5mm 5mm 5mm;
+                                    margin: 8mm 10mm 5mm 10mm;
                                     size: A4;
                                 }
-                                body {
-                                    margin: 0;
-                                    padding: 0;
-                                    font-family: Arial, sans-serif;
-                                    line-height: 1.2;
-                                    font-size: 8px;
+                                
+                                .pdf-main-header {
+                                    display: block;
                                 }
-                                .pdf-main-header { display: block; }
-                                .pdf-section { page-break-inside: avoid; break-inside: avoid; }
-                                table { page-break-inside: auto; }
-                                tr { page-break-inside: avoid; page-break-after: auto; }
-                                .signature-section { page-break-inside: avoid; break-inside: avoid; }
+                                
+                                .pdf-secondary-header {
+                                    display: block !important;
+                                    margin-bottom: 15px;
+                                    padding-bottom: 10px;
+                                    border-bottom: 1px solid #B0C4DE;
+                                }
+                                
+                                .pdf-section {
+                                    page-break-inside: avoid;
+                                    break-inside: avoid;
+                                }
+                                
+                                table {
+                                    page-break-inside: auto;
+                                }
+                                
+                                tr {
+                                    page-break-inside: avoid;
+                                    page-break-after: auto;
+                                }
+                                
+                                .keep-together {
+                                    page-break-inside: avoid;
+                                }
+                                
+                                .page-break {
+                                    page-break-before: always;
+                                }
+                                
+                                .signature-section {
+                                    page-break-before: avoid;
+                                    page-break-inside: avoid;
+                                }
+                                
+                                .signature-container {
+                                    position: relative;
+                                    margin-top: 20px;
+                                    page-break-inside: avoid;
+                                    break-inside: avoid;
+                                }
+                            }
+                            
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                font-family: Arial, sans-serif;
+                                line-height: 1.4;
                             }
                         </style>
                     `;
@@ -3181,32 +3096,38 @@
                     console.log('Contenedor PDF creado y agregado al DOM');
 
                     const opt = {
-                        margin: [5, 5, 5, 5],
-                        filename: fileName,
-                        image: { 
+                        margin:       8,
+                        filename:     fileName,
+                        image:        { 
                             type: 'jpeg', 
-                            quality: 0.95 
+                            quality: 0.98 
                         },
-                        html2canvas: { 
-                            scale: 1.5,
+                        html2canvas:  { 
+                            scale: 2,
                             useCORS: true,
                             logging: false,
                             scrollX: 0,
                             scrollY: 0,
-                            letterRendering: true,
-                            allowTaint: false,
-                            backgroundColor: '#FFFFFF'
+                            onclone: function(clonedDoc) {
+                                const clonedContainer = clonedDoc.getElementById('pdf-print-container');
+                                if (clonedContainer) {
+                                    clonedContainer.style.position = 'relative';
+                                    clonedContainer.style.left = '0';
+                                    clonedContainer.style.top = '0';
+                                    
+                                    const pageNumbers = clonedDoc.querySelectorAll('.page-number');
+                                    pageNumbers.forEach((span, index) => {
+                                        span.textContent = (index + 2);
+                                    });
+                                }
+                            }
                         },
-                        jsPDF: { 
+                        jsPDF:        { 
                             unit: 'mm', 
                             format: 'a4', 
                             orientation: 'portrait',
                             compress: true,
-                            hotfixes: ["px_scaling"],
-                            precision: 16
-                        },
-                        pagebreak: { 
-                            mode: ['avoid-all', 'css', 'legacy']
+                            hotfixes: ["px_scaling"]
                         }
                     };
 
@@ -3225,7 +3146,7 @@
                             .from(printContainer)
                             .save()
                             .then(() => {
-                                console.log('PDF generado y descargado exitosamente en una sola página:', fileName);
+                                console.log('PDF generado y descargado exitosamente:', fileName);
                                 if (document.body.contains(printContainer)) {
                                     document.body.removeChild(printContainer);
                                 }
@@ -3238,7 +3159,7 @@
                                 }
                                 reject(error);
                             });
-                    }, 500);
+                    }, 1000);
 
                 } catch (error) {
                     console.error('Error en generatePDF:', error);
@@ -3600,284 +3521,6 @@
             currentOrderForCertification = null;
         }
 
-        // *** NUEVA FUNCIÓN: Generar PDF de certificación optimizado para una sola página ***
-        function generateCertificationPDF(data) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const certificationNumber = data['Orden de Trabajo'];
-                    const fileName = `Certificacion_Obra_${certificationNumber}.pdf`;
-                    
-                    console.log('Generando PDF de certificación optimizado para una página:', certificationNumber);
-
-                    // Crear contenedor con estilos ultra compactos para una sola página
-                    const printContainer = document.createElement('div');
-                    printContainer.id = 'certification-pdf-container';
-                    printContainer.style.cssText = `
-                        position: absolute;
-                        left: -9999px;
-                        top: 0;
-                        width: 190mm;
-                        min-height: 277mm;
-                        background: white;
-                        padding: 5mm 5mm 3mm 5mm;
-                        font-family: Arial, sans-serif;
-                        box-sizing: border-box;
-                        line-height: 1.2;
-                        font-size: 9px;
-                        overflow: hidden;
-                    `;
-
-                    const certification = data['Certificación'] || {};
-
-                    const certificationHTML = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <style>
-                                * {
-                                    margin: 0;
-                                    padding: 0;
-                                    box-sizing: border-box;
-                                }
-                                body { 
-                                    font-family: 'Arial', sans-serif;
-                                    color: #36454F;
-                                    line-height: 1.15;
-                                    font-size: 9px;
-                                    width: 100%;
-                                    margin: 0;
-                                    padding: 0;
-                                }
-                                h1 { 
-                                    color: #4682B4;
-                                    text-align: center;
-                                    border-bottom: 1px solid #4682B4;
-                                    padding-bottom: 3px;
-                                    margin: 0 0 5px 0;
-                                    font-size: 14px;
-                                    font-weight: bold;
-                                }
-                                .section { 
-                                    margin-bottom: 4px;
-                                    page-break-inside: avoid;
-                                }
-                                .section h3 { 
-                                    color: #4682B4;
-                                    border-left: 2px solid #4682B4;
-                                    padding-left: 3px;
-                                    margin: 2px 0 2px 0;
-                                    font-size: 10px;
-                                    background-color: #F0F8FF;
-                                    padding: 2px 3px;
-                                }
-                                table { 
-                                    width: 100%;
-                                    border-collapse: collapse;
-                                    margin: 0;
-                                    table-layout: fixed;
-                                }
-                                td { 
-                                    padding: 2px 3px;
-                                    border: 1px solid #B0C4DE;
-                                    vertical-align: top;
-                                    font-size: 8px;
-                                    word-wrap: break-word;
-                                }
-                                .label { 
-                                    font-weight: bold;
-                                    background-color: #F0F8FF;
-                                    width: 35%;
-                                }
-                                .signature-section {
-                                    margin-top: 8px;
-                                    padding-top: 3px;
-                                    border-top: 1px dashed #B0C4DE;
-                                    page-break-inside: avoid;
-                                    display: flex;
-                                    justify-content: space-between;
-                                    width: 100%;
-                                }
-                                .signature-box {
-                                    width: 45%;
-                                    text-align: center;
-                                }
-                                .signature-box strong {
-                                    font-size: 8px;
-                                }
-                                .signature-line {
-                                    border-top: 1px solid #36454F;
-                                    margin-top: 15px;
-                                    padding-top: 5px;
-                                    width: 100%;
-                                }
-                                @media print {
-                                    @page {
-                                        margin: 5mm 5mm 5mm 5mm;
-                                        size: A4;
-                                    }
-                                    body { margin: 0; padding: 0; }
-                                    .section { page-break-inside: avoid; }
-                                    .signature-section { page-break-inside: avoid; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <h1>Certificación de Obras Nro. ${certificationNumber}</h1>
-                            
-                            <div class="section">
-                                <h3>I. Datos de Certificación</h3>
-                                <table>
-                                    <tr>
-                                        <td class="label">Número de Certificación:</td>
-                                        <td>${certification['Número de Certificación'] || certificationNumber}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Fecha de la Certificación:</td>
-                                        <td>${certification['Fecha de Certificación'] || getCurrentCaracasDate()}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Año:</td>
-                                        <td>${certification['Año'] || getCurrentCaracasYear()}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Mes:</td>
-                                        <td>${certification['Mes'] || getCurrentCaracasMonth()}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            
-                            <div class="section">
-                                <h3>II. Identificación</h3>
-                                <table>
-                                    <tr>
-                                        <td class="label">Empresa Contratista:</td>
-                                        <td>${certification['Empresa Contratista'] || 'No especificada'}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Identificación Fiscal RIF:</td>
-                                        <td>${certification['Identificación Fiscal RIF'] || 'No especificado'}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            
-                            <div class="section">
-                                <h3>III. Información del Proyecto</h3>
-                                <table>
-                                    <tr>
-                                        <td class="label">Corresponde Orden de trabajo N°:</td>
-                                        <td>${certificationNumber}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Fechas de Inicio:</td>
-                                        <td>${certification['Fecha de Inicio'] || 'No especificada'}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Fin de la Obra:</td>
-                                        <td>${certification['Fecha de Fin'] || 'No especificada'}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            
-                            <div class="section">
-                                <h3>IV. Detalle de los trabajos realizados</h3>
-                                <table>
-                                    <tr>
-                                        <td class="label">Detalle:</td>
-                                        <td style="white-space: pre-wrap; min-height: 30px; line-height: 1.2;">${(certification['Detalle de Trabajos Realizados'] || 'No se especificaron detalles').substring(0, 400)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Importe total de la obra:</td>
-                                        <td><strong>${parseFloat(certification['Importe Total de la Obra'] || '0').toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
-                                    </tr>
-                                </table>
-                            </div>
-                            
-                            <div class="section">
-                                <h3>V. Desviaciones y Justificación</h3>
-                                <table>
-                                    <tr>
-                                        <td class="label">Detalle de desviaciones:</td>
-                                        <td style="white-space: pre-wrap; min-height: 20px;">${(certification['Desviaciones y Justificación'] || 'No se registraron desviaciones').substring(0, 200)}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            
-                            <div class="signature-section">
-                                <div class="signature-box">
-                                    <strong>Firma Jefe Técnico (Firma/Sello)</strong>
-                                    <div class="signature-line"></div>
-                                </div>
-                                <div class="signature-box">
-                                    <strong>Firma Gerente Técnico (Firma/Sello)</strong>
-                                    <div class="signature-line"></div>
-                                </div>
-                            </div>
-                        </body>
-                        </html>
-                    `;
-
-                    printContainer.innerHTML = certificationHTML;
-                    document.body.appendChild(printContainer);
-
-                    const opt = {
-                        margin: [5, 5, 5, 5],
-                        filename: fileName,
-                        image: { 
-                            type: 'jpeg', 
-                            quality: 0.95 
-                        },
-                        html2canvas: { 
-                            scale: 1.5,
-                            useCORS: true,
-                            logging: false,
-                            scrollX: 0,
-                            scrollY: 0,
-                            letterRendering: true,
-                            allowTaint: false,
-                            backgroundColor: '#FFFFFF'
-                        },
-                        jsPDF: { 
-                            unit: 'mm', 
-                            format: 'a4', 
-                            orientation: 'portrait',
-                            compress: true,
-                            hotfixes: ["px_scaling"],
-                            precision: 16
-                        },
-                        pagebreak: { 
-                            mode: ['avoid-all', 'css', 'legacy']
-                        }
-                    };
-
-                    setTimeout(() => {
-                        html2pdf()
-                            .set(opt)
-                            .from(printContainer)
-                            .save()
-                            .then(() => {
-                                console.log('PDF de certificación generado exitosamente en una sola página:', fileName);
-                                if (document.body.contains(printContainer)) {
-                                    document.body.removeChild(printContainer);
-                                }
-                                resolve();
-                            })
-                            .catch(error => {
-                                console.error('Error al generar PDF de certificación:', error);
-                                if (document.body.contains(printContainer)) {
-                                    document.body.removeChild(printContainer);
-                                }
-                                reject(error);
-                            });
-                    }, 500);
-
-                } catch (error) {
-                    console.error('Error en generateCertificationPDF:', error);
-                    reject(error);
-                }
-            });
-        }
-
         async function completeWorkOrder() {
             if (!currentOrderForCertification) {
                 alert('Error: No hay orden seleccionada para finalizar.');
@@ -3937,7 +3580,6 @@
                 workOrders = workOrders.filter(order => order.id !== currentOrderForCertification.id);
                 completedOrders.push(certificationData);
                 
-                // Llamar a la función optimizada de PDF
                 await generateCertificationPDF(certificationData);
                 
                 closeCertificationModal();
@@ -3945,12 +3587,251 @@
                 renderCompletedOrdersTable();
                 renderAdminEditTables();
                 
-                alert('✅ Orden finalizada exitosamente. Se ha generado la certificación en PDF (una sola página).');
+                alert('✅ Orden finalizada exitosamente. Se ha generado la certificación en PDF.');
                 
             } catch (error) {
                 console.error('Error al finalizar la orden:', error);
                 alert('Error al finalizar la orden: ' + error.message);
             }
+        }
+
+        function generateCertificationPDF(data) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const certificationNumber = data['Orden de Trabajo'];
+                    const fileName = `Certificacion_Obra_${certificationNumber}.pdf`;
+                    
+                    console.log('Generando PDF de certificación para orden:', certificationNumber);
+
+                    const certificationContent = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <style>
+                                body { 
+                                    font-family: Arial, sans-serif; 
+                                    margin: 8mm 20px 5mm 20px;
+                                    color: #36454F; 
+                                    line-height: 1.4;
+                                    background: white;
+                                }
+                                h1 { 
+                                    color: #4682B4; 
+                                    text-align: center; 
+                                    border-bottom: 2px solid #4682B4; 
+                                    padding-bottom: 10px; 
+                                    margin-bottom: 20px; 
+                                }
+                                .section { 
+                                    margin-bottom: 25px; 
+                                    page-break-inside: avoid;
+                                }
+                                .section h3 { 
+                                    color: #4682B4; 
+                                    border-left: 4px solid #4682B4; 
+                                    padding-left: 8px; 
+                                    margin-top: 0;
+                                }
+                                table { 
+                                    width: 100%; 
+                                    border-collapse: collapse; 
+                                    margin-top: 10px;
+                                }
+                                td { 
+                                    padding: 10px; 
+                                    border: 1px solid #B0C4DE; 
+                                    vertical-align: top;
+                                }
+                                .label { 
+                                    font-weight: bold; 
+                                    background-color: #F0F8FF; 
+                                    width: 35%; 
+                                }
+                                .signature-section {
+                                    margin-top: 50px;
+                                    padding-top: 20px;
+                                    border-top: 2px dashed #B0C4DE;
+                                    width: 100%;
+                                    page-break-inside: avoid;
+                                }
+                                .signatures-container {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    width: 100%;
+                                }
+                                .signature-box {
+                                    width: 45%;
+                                    text-align: center;
+                                }
+                                .signature-line {
+                                    border-bottom: 1px solid #000;
+                                    margin-top: 60px;
+                                    height: 1px;
+                                    width: 100%;
+                                }
+                                @media print {
+                                    @page {
+                                        margin: 8mm 15mm 5mm 15mm;
+                                    }
+                                    body { margin: 0; }
+                                    .section { page-break-inside: avoid; }
+                                    .signatures-container { display: flex; justify-content: space-between; }
+                                    .signature-section { page-break-inside: avoid; }
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>Certificación de Obras Nro. ${certificationNumber}</h1>
+                            
+                            <div class="section">
+                                <h3>I. Datos de Certificación</h3>
+                                <table>
+                                    <tr>
+                                        <td class="label">Número de Certificación:</td>
+                                        <td>${certificationNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Fecha de la Certificación:</td>
+                                        <td>${data['Certificación']?.['Fecha de Certificación'] || data['Fecha de Finalización'] || getCurrentCaracasDate()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Año:</td>
+                                        <td>${data['Certificación']?.['Año'] || getCurrentCaracasYear()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Mes:</td>
+                                        <td>${data['Certificación']?.['Mes'] || getCurrentCaracasMonth()}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="section">
+                                <h3>II. Identificación</h3>
+                                <table>
+                                    <tr>
+                                        <td class="label">Empresa Contratista:</td>
+                                        <td>${data['Certificación']?.['Empresa Contratista'] || 'No especificada'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Identificación Fiscal RIF:</td>
+                                        <td>${data['Certificación']?.['Identificación Fiscal RIF'] || 'No especificado'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="section">
+                                <h3>III. Información del Proyecto</h3>
+                                <table>
+                                    <tr>
+                                        <td class="label">Corresponde Orden de trabajo N°:</td>
+                                        <td>${certificationNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Fechas de Inicio:</td>
+                                        <td>${data['Certificación']?.['Fecha de Inicio'] || 'No especificada'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Fin de la Obra:</td>
+                                        <td>${data['Certificación']?.['Fecha de Fin'] || 'No especificada'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="section">
+                                <h3>IV. Detalle de los trabajos realizados</h3>
+                                <table>
+                                    <tr>
+                                        <td class="label">Detalle:</td>
+                                        <td style="white-space: pre-wrap; min-height: 100px;">${data['Certificación']?.['Detalle de Trabajos Realizados'] || 'No se especificaron detalles'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Importe total de la obra:</td>
+                                        <td>${data['Certificación']?.['Importe Total de la Obra'] || 'No especificado'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="section">
+                                <h3>V. Desviaciones y Justificación</h3>
+                                <table>
+                                    <tr>
+                                        <td class="label">Detalle de desviaciones:</td>
+                                        <td style="white-space: pre-wrap; min-height: 80px;">${data['Certificación']?.['Desviaciones y Justificación'] || 'No se registraron desviaciones'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="signature-section">
+                                <div class="signatures-container">
+                                    <div class="signature-box">
+                                        <strong>Firma Jefe Técnico (Firma/Sello)</strong>
+                                        <div class="signature-line"></div>
+                                    </div>
+                                    <div class="signature-box">
+                                        <strong>Firma Gerente Técnico (Firma/Sello)</strong>
+                                        <div class="signature-line"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+
+                    const printContainer = document.createElement('div');
+                    printContainer.innerHTML = certificationContent;
+                    document.body.appendChild(printContainer);
+
+                    const opt = {
+                        margin: 8,
+                        filename: fileName,
+                        image: { 
+                            type: 'jpeg', 
+                            quality: 0.98 
+                        },
+                        html2canvas: { 
+                            scale: 2,
+                            useCORS: true,
+                            logging: true,
+                            backgroundColor: '#FFFFFF',
+                            onclone: function(clonedDoc) {
+                                console.log('Documento clonado para PDF de certificación');
+                            }
+                        },
+                        jsPDF: { 
+                            unit: 'mm', 
+                            format: 'a4', 
+                            orientation: 'portrait',
+                            compress: true
+                        }
+                    };
+
+                    setTimeout(() => {
+                        html2pdf()
+                            .set(opt)
+                            .from(printContainer)
+                            .save()
+                            .then(() => {
+                                console.log('PDF de certificación generado exitosamente:', fileName);
+                                if (document.body.contains(printContainer)) {
+                                    document.body.removeChild(printContainer);
+                                }
+                                resolve();
+                            })
+                            .catch(error => {
+                                console.error('Error al generar PDF de certificación:', error);
+                                if (document.body.contains(printContainer)) {
+                                    document.body.removeChild(printContainer);
+                                }
+                                reject(error);
+                            });
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('Error en generateCertificationPDF:', error);
+                    reject(error);
+                }
+            });
         }
 
         // *** MEJORA: Funciones para edición avanzada ***
@@ -4104,7 +3985,6 @@
                 certPdfBtn.style.backgroundColor = '#77DD77';
                 certPdfBtn.style.color = 'white';
                 certPdfBtn.style.marginLeft = '5px';
-                // Usar la nueva función optimizada
                 certPdfBtn.onclick = () => generateCertificationPDF(order);
                 actionCell.appendChild(certPdfBtn);
                 
@@ -4761,7 +4641,6 @@
                         const certificationPdfButton = document.createElement('button');
                         certificationPdfButton.textContent = '📄 Certificación';
                         certificationPdfButton.className = 'order-pdf-button';
-                        // Usar la nueva función optimizada
                         certificationPdfButton.onclick = () => generateCertificationPDF(completeOrder);
                         
                         const orderPdfButton = document.createElement('button');
