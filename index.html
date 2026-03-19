@@ -1653,7 +1653,8 @@
                 <div class="form-section">
                     <h4>IV. Detalle de los trabajos realizados</h4>
                     <p>
-                        <textarea id="work-details" required style="min-height: 120px;" placeholder="Describa detalladamente los trabajos realizados..."></textarea>
+                        <!-- MODIFICACIÓN: Este campo ahora es un textarea de solo lectura y se autocompleta con la Descripción Detallada de la orden -->
+                        <textarea id="work-details" required style="min-height: 120px;" readonly placeholder="Se autocompletará con la descripción de la orden..."></textarea>
                     </p>
                     <p>
                         <label for="total-amount">Importe total de la obra:</label>
@@ -3509,8 +3510,15 @@
                 document.getElementById('total-amount').value = '';
             }
             
+            // MODIFICACIÓN: Campo "Detalle de los trabajos realizados" (work-details) se autocompleta con "Descripción Detallada" de la orden y se hace readonly
+            if (order['Descripción Detallada']) {
+                document.getElementById('work-details').value = order['Descripción Detallada'];
+            } else {
+                document.getElementById('work-details').value = '';
+            }
+            document.getElementById('work-details').readOnly = true; // Establecer como solo lectura
+            
             // Limpiar campos que no se autocompletan
-            document.getElementById('work-details').value = '';
             document.getElementById('deviations').value = '';
             
             document.getElementById('certification-modal').style.display = 'flex';
