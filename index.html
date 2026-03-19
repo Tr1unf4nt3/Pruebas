@@ -3032,7 +3032,7 @@
                         <style>
                             @media print {
                                 @page {
-                                    margin: 8mm 10mm 5mm 10mm;
+                                    margin: 5mm 8mm 5mm 8mm;
                                     size: A4;
                                 }
                                 
@@ -3097,7 +3097,7 @@
                     console.log('Contenedor PDF creado y agregado al DOM');
 
                     const opt = {
-                        margin:       8,
+                        margin:       5,
                         filename:     fileName,
                         image:        { 
                             type: 'jpeg', 
@@ -3122,6 +3122,11 @@
                                     });
                                 }
                             }
+                        },
+                        pagebreak: { 
+                            mode: ['css', 'legacy'],
+                            before: '.page-break',
+                            after: ['#page1']
                         },
                         jsPDF:        { 
                             unit: 'mm', 
@@ -3791,7 +3796,7 @@
                     document.body.appendChild(printContainer);
 
                     const opt = {
-                        margin: 8,
+                        margin: 5,
                         filename: fileName,
                         image: { 
                             type: 'jpeg', 
@@ -3805,6 +3810,11 @@
                             onclone: function(clonedDoc) {
                                 console.log('Documento clonado para PDF de certificación');
                             }
+                        },
+                        pagebreak: { 
+                            mode: ['css', 'legacy'],
+                            before: '.page-break',
+                            after: ['#page1']
                         },
                         jsPDF: { 
                             unit: 'mm', 
@@ -4472,7 +4482,7 @@
                     document.body.appendChild(printContainer);
 
                     const opt = {
-                        margin: 8,
+                        margin: 5,
                         filename: fileName,
                         image: { 
                             type: 'jpeg', 
@@ -4483,6 +4493,11 @@
                             useCORS: true,
                             logging: false,
                             backgroundColor: '#FFFFFF'
+                        },
+                        pagebreak: { 
+                            mode: ['css', 'legacy'],
+                            before: '.page-break',
+                            after: ['#page1']
                         },
                         jsPDF: { 
                             unit: 'mm', 
