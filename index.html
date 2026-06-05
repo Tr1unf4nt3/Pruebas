@@ -13,6 +13,7 @@
         body { font-family: 'Inter', sans-serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .modal { transition: opacity 0.2s ease; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
@@ -46,7 +47,7 @@
             </div>
         </header>
 
-        <nav id="main-nav" class="bg-white border-b border-gray-200 overflow-x-auto flex whitespace-nowrap scrollbar-none shadow-sm">
+        <nav id="main-nav" class="bg-white border-b border-gray-200 overflow-x-auto flex whitespace-nowrap shadow-sm">
             <button onclick="switchTab('tab-crear')" class="tab-btn px-4 py-3 border-b-2 border-indigo-600 text-indigo-600 font-medium text-sm transition focus:outline-none">1. Crear Orden</button>
             <button onclick="switchTab('tab-en-curso')" class="tab-btn px-4 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition focus:outline-none">2. Órdenes en Curso</button>
             <button onclick="switchTab('tab-finalizadas')" class="tab-btn px-4 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition focus:outline-none">3. Órdenes Finalizadas</button>
@@ -135,7 +136,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Empresa</label>
-                                <select id="ord-empresa" required class="mt-1 block w-full border-gray-300 rounded-md p-2 border" onchange="autoFillEmpresa(this.value)">
+                                <select id="ord-empresa" required class="mt-1 block w-full border-gray-300 rounded-md p-2 border">
                                     <option value="">Seleccione una empresa...</option>
                                 </select>
                             </div>
@@ -329,7 +330,7 @@
                 </div>
             </div>
 
-            <div id="modal-certificar" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div id="modal-certificar" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50 overflow-y-auto modal">
                 <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                     <h2 class="text-xl font-bold mb-4 text-indigo-700" id="cert-titulo">Certificación de Obra</h2>
                     <form id="form-certificacion" class="space-y-4">
@@ -458,7 +459,7 @@
                         <h3 class="text-lg font-semibold text-indigo-700 mb-4">II. Información de la Empresa</h3>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Empresa contratista</label>
-                            <select id="cf-empresa" required class="mt-1 block w-full border-gray-300 rounded-md p-2 border bg-white" onchange="cargarOrdenesNoCertificadas(this.value)">
+                            <select id="cf-empresa" required class="mt-1 block w-full border-gray-300 rounded-md p-2 border bg-white">
                                 <option value="">Seleccione una empresa...</option>
                             </select>
                         </div>
@@ -563,9 +564,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, set, push, get, child, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, set, push, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
-        // CONFIGURACIÓN CORREGIDA: Se añade explícitamente la propiedad databaseURL
         const firebaseConfig = {
             apiKey: "AIzaSyAvLUU_Qp17H7HChTvnqaqPKDwRMVq5XEM",
             authDomain: "pruebas-39fd2.firebaseapp.com",
@@ -588,7 +588,6 @@
         let dataOrdenes = {};
         let dataCertFinales = {};
 
-        // --- CONTROL DE ZONA HORARIA VENEZUELA (UTC -04:00) ---
         function getCaracasDate() {
             const d = new Date();
             const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
@@ -623,39 +622,36 @@
         }
 
         async function calcularSiguienteNumeroOrden(anio, mesNombre) {
-            get(ref(db, 'ordenes')).then((snapshot) => {
-                let maxNum = 0;
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    for (let id in data) {
-                        if (data[id].anio == anio && data[id].mes == mesNombre) {
-                            if (data[id].numOrden > maxNum) maxNum = data[id].numOrden;
-                        }
+            const snapshot = await get(ref(db, 'ordenes'));
+            let maxNum = 0;
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                for (let id in data) {
+                    if (data[id].anio == anio && data[id].mes == mesNombre) {
+                        if (data[id].numOrden > maxNum) maxNum = data[id].numOrden;
                     }
                 }
-                document.getElementById('ord-num').value = maxNum + 1;
-            });
+            }
+            document.getElementById('ord-num').value = maxNum + 1;
         }
 
         async function calcularSiguienteCertificacionFinal(anio, mesNum) {
-            get(ref(db, 'certificaciones_finales')).then((snapshot) => {
-                let maxCorrelativo = 0;
-                const prefijoMes = String(mesNum).padStart(2, '0');
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    for (let id in data) {
-                        if (data[id].numCertFinal && data[id].numCertFinal.startsWith(prefijoMes + "-")) {
-                            const partes = data[id].numCertFinal.split("-");
-                            const correlativo = parseInt(partes[1], 10);
-                            if (correlativo > maxCorrelativo) maxCorrelativo = correlativo;
-                        }
+            const snapshot = await get(ref(db, 'certificaciones_finales'));
+            let maxCorrelativo = 0;
+            const prefijoMes = String(mesNum).padStart(2, '0');
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                for (let id in data) {
+                    if (data[id].numCertFinal && data[id].numCertFinal.startsWith(prefijoMes + "-")) {
+                        const partes = data[id].numCertFinal.split("-");
+                        const correlativo = parseInt(partes[1], 10);
+                        if (correlativo > maxCorrelativo) maxCorrelativo = correlativo;
                     }
                 }
-                document.getElementById('cf-num').value = `${prefijoMes}-${String(maxCorrelativo + 1).padStart(2, '0')}`;
-            });
+            }
+            document.getElementById('cf-num').value = `${prefijoMes}-${String(maxCorrelativo + 1).padStart(2, '0')}`;
         }
 
-        // --- MANEJO DE AUTENTICACIÓN ---
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -676,16 +672,21 @@
                 document.getElementById('login-container').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 document.getElementById('user-display').innerText = user.email;
-                document.getElementById('ord-usuario').value = user.email;
+                const usuarioField = document.getElementById('ord-usuario');
+                if (usuarioField) usuarioField.value = user.email;
 
                 if (isAdmin) {
-                    document.getElementById('role-badge').innerText = "Administrador";
-                    document.getElementById('role-badge').className = "bg-red-600 text-xs px-2.5 py-1 rounded-full font-semibold";
-                    document.getElementById('admin-nav-btn').classList.remove('hidden');
+                    const roleBadge = document.getElementById('role-badge');
+                    roleBadge.innerText = "Administrador";
+                    roleBadge.className = "bg-red-600 text-xs px-2.5 py-1 rounded-full font-semibold";
+                    const adminNav = document.getElementById('admin-nav-btn');
+                    if (adminNav) adminNav.classList.remove('hidden');
                 } else {
-                    document.getElementById('role-badge').innerText = "Usuario";
-                    document.getElementById('role-badge').className = "bg-indigo-800 text-xs px-2.5 py-1 rounded-full font-semibold";
-                    document.getElementById('admin-nav-btn').classList.add('hidden');
+                    const roleBadge = document.getElementById('role-badge');
+                    roleBadge.innerText = "Usuario";
+                    roleBadge.className = "bg-indigo-800 text-xs px-2.5 py-1 rounded-full font-semibold";
+                    const adminNav = document.getElementById('admin-nav-btn');
+                    if (adminNav) adminNav.classList.add('hidden');
                 }
 
                 initFormFechas();
@@ -698,7 +699,6 @@
             }
         });
 
-        // --- SINCRONIZACIÓN DE REALTIME DATABASE ---
         function sincronizarRealtime() {
             onValue(ref(db, 'empresas'), (snapshot) => {
                 dataEmpresas = snapshot.val() || {};
@@ -716,7 +716,6 @@
             });
         }
 
-        // --- CONTROL PESTAÑA 4: EMPRESAS ---
         document.getElementById('form-empresa').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('emp-id').value;
@@ -734,21 +733,25 @@
         });
 
         window.resetEmpresaForm = function() {
-            document.getElementById('form-empresa').reset();
-            document.getElementById('emp-id').value = "";
-            document.getElementById('emp-form-title').innerText = "Agregar Empresa";
+            const form = document.getElementById('form-empresa');
+            if (form) form.reset();
+            const empId = document.getElementById('emp-id');
+            if (empId) empId.value = "";
+            const title = document.getElementById('emp-form-title');
+            if (title) title.innerText = "Agregar Empresa";
         }
 
         function renderEmpresas() {
             const tbody = document.getElementById('tabla-empresas-body');
+            if (!tbody) return;
             tbody.innerHTML = "";
             for (let id in dataEmpresas) {
                 const emp = dataEmpresas[id];
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-medium">${emp.nombre}</td>
-                        <td class="p-3">${emp.responsable}</td>
-                        <td class="p-3">${emp.rif}</td>
+                        <td class="p-3 font-medium">${escapeHtml(emp.nombre)}</td>
+                        <td class="p-3">${escapeHtml(emp.responsable)}</td>
+                        <td class="p-3">${escapeHtml(emp.rif)}</td>
                         <td class="p-3 flex gap-2">
                             <button onclick="editarEmpresa('${id}')" class="text-indigo-600 hover:text-indigo-900 font-semibold text-xs">Editar</button>
                             <button onclick="eliminarEmpresa('${id}')" class="text-red-600 hover:text-red-900 font-semibold text-xs">Eliminar</button>
@@ -778,9 +781,9 @@
                 const element = document.getElementById(ddId);
                 if (!element) return;
                 const savedVal = element.value;
-                element.innerHTML = ddId.startsWith('f-') || ddId.startsWith('rep-') ? '<option value="">Todas</option>' : '<option value="">Seleccione una empresa...</option>';
+                element.innerHTML = (ddId.startsWith('f-') || ddId.startsWith('rep-')) ? '<option value="">Todas</option>' : '<option value="">Seleccione una empresa...</option>';
                 for (let id in dataEmpresas) {
-                    element.innerHTML += `<option value="${dataEmpresas[id].nombre}">${dataEmpresas[id].nombre}</option>`;
+                    element.innerHTML += `<option value="${escapeHtml(dataEmpresas[id].nombre)}">${escapeHtml(dataEmpresas[id].nombre)}</option>`;
                 }
                 element.value = savedVal;
             });
@@ -798,23 +801,32 @@
             document.getElementById('ord-emp-rif').value = "";
         }
 
-        // --- CONTROL DE CAMPOS DINÁMICOS ---
         window.toggleOpcional = function(id, status) {
-            document.getElementById(id).classList.toggle('hidden', !status);
+            const element = document.getElementById(id);
+            if (element) {
+                if (status) {
+                    element.classList.remove('hidden');
+                } else {
+                    element.classList.add('hidden');
+                }
+            }
         }
+        
         window.hideOpcionales = function() {
-            toggleOpcional('opc-nodo', false);
-            toggleOpcional('opc-isp', false);
+            window.toggleOpcional('opc-nodo', false);
+            window.toggleOpcional('opc-isp', false);
         }
+        
         window.calcVgt = function(prefix) {
-            const pu = parseFloat(document.getElementById(`${prefix}-pu`).value) || 0;
-            const pts = parseFloat(document.getElementById(`${prefix}-pts`).value) || 0;
-            document.getElementById(`${prefix}-tot`).innerText = (pu * pts).toFixed(2);
+            const pu = parseFloat(document.getElementById(`${prefix}-pu`)?.value) || 0;
+            const pts = parseFloat(document.getElementById(`${prefix}-pts`)?.value) || 0;
+            const totalSpan = document.getElementById(`${prefix}-tot`);
+            if (totalSpan) totalSpan.innerText = (pu * pts).toFixed(2);
         }
 
-        // --- CREACIÓN DE ÓRDENES ---
-        document.getElementById('form-orden').addEventListener('submit', (e) => {
+        document.getElementById('form-orden').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const orden = {
                 numOrden: parseInt(document.getElementById('ord-num').value, 10),
                 mes: document.getElementById('ord-mes').value,
@@ -840,43 +852,46 @@
                 presupuesto: parseFloat(document.getElementById('ord-presupuesto').value) || 0,
                 estado: "En Curso",
                 certificadaStatus: "No Certificado",
-                opcionalNodo: !document.getElementById('opc-nodo').classList.contains('hidden') ? {
-                    costo: parseFloat(document.getElementById('nodo-costo').value) || 0,
-                    pagoPor: document.getElementById('nodo-pago-por').value,
-                    cantvPu: parseFloat(document.getElementById('nodo-cantv-pu').value) || 0,
-                    cantvPts: parseFloat(document.getElementById('nodo-cantv-pts').value) || 0,
-                    edcPu: parseFloat(document.getElementById('nodo-edc-pu').value) || 0,
-                    edcPts: parseFloat(document.getElementById('nodo-edc-pts').value) || 0,
-                    desc: document.getElementById('nodo-desc').value,
-                    abono: parseFloat(document.getElementById('nodo-abono').value) || 0
+                opcionalNodo: document.getElementById('opc-nodo') && !document.getElementById('opc-nodo').classList.contains('hidden') ? {
+                    costo: parseFloat(document.getElementById('nodo-costo')?.value) || 0,
+                    pagoPor: document.getElementById('nodo-pago-por')?.value || "Inter",
+                    cantvPu: parseFloat(document.getElementById('nodo-cantv-pu')?.value) || 0,
+                    cantvPts: parseFloat(document.getElementById('nodo-cantv-pts')?.value) || 0,
+                    edcPu: parseFloat(document.getElementById('nodo-edc-pu')?.value) || 0,
+                    edcPts: parseFloat(document.getElementById('nodo-edc-pts')?.value) || 0,
+                    desc: document.getElementById('nodo-desc')?.value || "",
+                    abono: parseFloat(document.getElementById('nodo-abono')?.value) || 0
                 } : null,
-                opcionalIsp: !document.getElementById('opc-isp').classList.contains('hidden') ? {
-                    costo: parseFloat(document.getElementById('isp-costo').value) || 0,
-                    pagoPor: document.getElementById('isp-pago-por').value,
-                    cantvPu: parseFloat(document.getElementById('isp-cantv-pu').value) || 0,
-                    cantvPts: parseFloat(document.getElementById('isp-cantv-pts').value) || 0,
-                    edcPu: parseFloat(document.getElementById('isp-edc-pu').value) || 0,
-                    edcPts: parseFloat(document.getElementById('isp-edc-pts').value) || 0,
-                    desc: document.getElementById('isp-desc').value,
-                    abono: parseFloat(document.getElementById('isp-abono').value) || 0
+                opcionalIsp: document.getElementById('opc-isp') && !document.getElementById('opc-isp').classList.contains('hidden') ? {
+                    costo: parseFloat(document.getElementById('isp-costo')?.value) || 0,
+                    pagoPor: document.getElementById('isp-pago-por')?.value || "Inter",
+                    cantvPu: parseFloat(document.getElementById('isp-cantv-pu')?.value) || 0,
+                    cantvPts: parseFloat(document.getElementById('isp-cantv-pts')?.value) || 0,
+                    edcPu: parseFloat(document.getElementById('isp-edc-pu')?.value) || 0,
+                    edcPts: parseFloat(document.getElementById('isp-edc-pts')?.value) || 0,
+                    desc: document.getElementById('isp-desc')?.value || "",
+                    abono: parseFloat(document.getElementById('isp-abono')?.value) || 0
                 } : null
             };
 
-            push(ref(db, 'ordenes'), orden).then(() => {
+            try {
+                await push(ref(db, 'ordenes'), orden);
                 alert("Orden de Trabajo guardada con éxito.");
-                generarOrdenPDF(orden);
+                window.generarOrdenPDF(orden);
                 document.getElementById('form-orden').reset();
-                hideOpcionales();
+                window.hideOpcionales();
                 initFormFechas();
-            });
+            } catch (error) {
+                alert("Error al guardar la orden: " + error.message);
+            }
         });
 
-        // --- FILTRADOS Y RENDERS ---
         window.filtrarEnCurso = function() {
-            const busq = document.getElementById('f-encurso-busq').value;
-            const emp = document.getElementById('f-encurso-emp').value;
-            const obra = document.getElementById('f-encurso-obra').value;
+            const busq = document.getElementById('f-encurso-busq')?.value;
+            const emp = document.getElementById('f-encurso-emp')?.value;
+            const obra = document.getElementById('f-encurso-obra')?.value;
             const tbody = document.getElementById('tabla-encurso-body');
+            if (!tbody) return;
             tbody.innerHTML = "";
             let contador = 0;
 
@@ -884,8 +899,8 @@
                 const o = dataOrdenes[id];
                 if (o.estado !== "En Curso") continue;
                 if (busq && o.numOrden != busq) continue;
-                if (emp && o.empresa !== emp) continue;
-                if (obra && o.trabajo !== obra) continue;
+                if (emp && emp !== "Todas" && o.empresa !== emp) continue;
+                if (obra && obra !== "Todas" && obra !== "" && o.trabajo !== obra) continue;
 
                 contador++;
                 tbody.innerHTML += `
@@ -893,8 +908,8 @@
                         <td class="p-3">${o.anio}</td>
                         <td class="p-3">${o.mes}</td>
                         <td class="p-3 font-bold">${String(o.numOrden).padStart(2, '0')}</td>
-                        <td class="p-3">${o.empresa}</td>
-                        <td class="p-3">${o.trabajo}</td>
+                        <td class="p-3">${escapeHtml(o.empresa)}</td>
+                        <td class="p-3">${escapeHtml(o.trabajo)}</td>
                         <td class="p-3"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">En Curso</span></td>
                         <td class="p-3 flex gap-2">
                             <button onclick="abrirCertificarModal('${id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs">Finalizar</button>
@@ -902,14 +917,16 @@
                         </td>
                     </tr>`;
             }
-            document.getElementById('p1-cant').innerText = contador;
+            const p1Cant = document.getElementById('p1-cant');
+            if (p1Cant) p1Cant.innerText = contador;
         }
 
         window.filtrarFinalizadas = function() {
-            const busq = document.getElementById('f-fin-busq').value;
-            const emp = document.getElementById('f-fin-emp').value;
-            const obra = document.getElementById('f-fin-obra').value;
+            const busq = document.getElementById('f-fin-busq')?.value;
+            const emp = document.getElementById('f-fin-emp')?.value;
+            const obra = document.getElementById('f-fin-obra')?.value;
             const tbody = document.getElementById('tabla-finalizadas-body');
+            if (!tbody) return;
             tbody.innerHTML = "";
             let contador = 0;
 
@@ -917,30 +934,31 @@
                 const o = dataOrdenes[id];
                 if (o.estado !== "Finalizado") continue;
                 if (busq && o.numOrden != busq) continue;
-                if (emp && o.empresa !== emp) continue;
-                if (obra && o.trabajo !== obra) continue;
+                if (emp && emp !== "Todas" && o.empresa !== emp) continue;
+                if (obra && obra !== "Todas" && obra !== "" && o.trabajo !== obra) continue;
 
                 contador++;
                 const statusBadge = o.certificadaStatus === "No Certificado" 
-                    ? `<span class="bg-orange-100 text-orange-800 text-xs font-semibold px-2 py-1 rounded">(Finalizado) (No Certificado)</span>`
-                    : `<span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">(Finalizado) (Certificación ${o.certificadaStatus})</span>`;
+                    ? `<span class="bg-orange-100 text-orange-800 text-xs font-semibold px-2 py-1 rounded">Finalizado (No Certificado)</span>`
+                    : `<span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">Finalizado (Cert. ${o.certificadaStatus})</span>`;
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="p-3">${o.anio}</td>
                         <td class="p-3">${o.mes}</td>
                         <td class="p-3 font-bold">${String(o.numOrden).padStart(2, '0')}</td>
-                        <td class="p-3">${o.empresa}</td>
-                        <td class="p-3">${o.trabajo}</td>
+                        <td class="p-3">${escapeHtml(o.empresa)}</td>
+                        <td class="p-3">${escapeHtml(o.trabajo)}</td>
                         <td class="p-3">${statusBadge}</td>
                     </tr>`;
             }
-            document.getElementById('p3-cant').innerText = contador;
+            const p3Cant = document.getElementById('p3-cant');
+            if (p3Cant) p3Cant.innerText = contador;
         }
 
-        // --- VENTANA MODAL CERTIFICACIÓN DE OBRA ---
         window.abrirCertificarModal = function(id) {
             const o = dataOrdenes[id];
+            if (!o) return;
             const fVzla = getCaracasDate();
             
             document.getElementById('cert-ord-id').value = id;
@@ -957,17 +975,26 @@
             document.getElementById('cert-importe').value = o.presupuesto.toFixed(2);
             document.getElementById('cert-detalles-desv').value = "";
 
-            document.getElementById('modal-certificar').classList.remove('hidden');
+            const modal = document.getElementById('modal-certificar');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
         }
 
         window.closeCertificarModal = function() {
-            document.getElementById('modal-certificar').classList.add('hidden');
+            const modal = document.getElementById('modal-certificar');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
 
-        document.getElementById('form-certificacion').addEventListener('submit', (e) => {
+        document.getElementById('form-certificacion').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('cert-ord-id').value;
             const o = dataOrdenes[id];
+            if (!o) return;
             
             const certificacionObra = {
                 numCertificacion: document.getElementById('cert-num').value,
@@ -981,16 +1008,19 @@
             updates[`/ordenes/${id}/estado`] = "Finalizado";
             updates[`/ordenes/${id}/certificacionObra`] = certificacionObra;
 
-            update(ref(db), updates).then(() => {
+            try {
+                await update(ref(db), updates);
                 alert("Certificación de Obra procesada correctamente.");
-                closeCertificarModal();
-                generarCertificacionObraPDF(o, certificacionObra);
-            });
+                window.closeCertificarModal();
+                window.generarCertificacionObraPDF(o, certificacionObra);
+            } catch (error) {
+                alert("Error al procesar la certificación: " + error.message);
+            }
         });
 
-        // --- PESTAÑA 5: CERTIFICACIÓN FINAL CONJUNTA ---
         window.cargarOrdenesNoCertificadas = function(empNombre) {
             const container = document.getElementById('cf-ordenes-container');
+            if (!container) return;
             container.innerHTML = "";
             let hasOrdenes = false;
 
@@ -1002,7 +1032,7 @@
                         <div class="flex items-center justify-between p-2 hover:bg-gray-50 border-b">
                             <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
                                 <input type="checkbox" name="cf-chk-orden" value="${id}" onchange="calcTotalCertFinal()" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
-                                Orden de Trabajo N° ${String(o.numOrden).padStart(2, '0')} (${o.trabajo})
+                                Orden de Trabajo N° ${String(o.numOrden).padStart(2, '0')} (${escapeHtml(o.trabajo)})
                             </label>
                             <span class="text-sm font-bold text-gray-900">$${o.presupuesto.toFixed(2)}</span>
                         </div>`;
@@ -1011,23 +1041,24 @@
             if (!hasOrdenes) {
                 container.innerHTML = '<p class="text-sm text-gray-500 italic">No se encontraron órdenes finalizadas pendientes para esta empresa.</p>';
             }
-            calcTotalCertFinal();
+            window.calcTotalCertFinal();
         }
 
         window.calcTotalCertFinal = function() {
             const chks = document.getElementsByName('cf-chk-orden');
             let sum = 0;
-            chks.forEach(chk => { if (chk.checked) sum += dataOrdenes[chk.value].presupuesto; });
-            document.getElementById('cf-total-sum').innerText = sum.toFixed(2);
+            chks.forEach(chk => { if (chk.checked && dataOrdenes[chk.value]) sum += dataOrdenes[chk.value].presupuesto; });
+            const totalSpan = document.getElementById('cf-total-sum');
+            if (totalSpan) totalSpan.innerText = sum.toFixed(2);
         }
 
-        document.getElementById('form-cert-final').addEventListener('submit', (e) => {
+        document.getElementById('form-cert-final').addEventListener('submit', async (e) => {
             e.preventDefault();
             const empNombre = document.getElementById('cf-empresa').value;
             const numCertFinal = document.getElementById('cf-num').value;
             const mes = document.getElementById('cf-mes').value;
             const anio = parseInt(document.getElementById('cf-anio').value, 10);
-            const totalSum = parseFloat(document.getElementById('cf-total-sum').innerText) || 0;
+            const totalSum = parseFloat(document.getElementById('cf-total-sum')?.innerText) || 0;
 
             const chks = document.getElementsByName('cf-chk-orden');
             const ordenesSeleccionadasIds = [];
@@ -1042,29 +1073,36 @@
                 numCertFinal, mes, anio, empresa: empNombre, total: totalSum, ordenesIds: ordenesSeleccionadasIds
             };
 
-            push(ref(db, 'certificaciones_finales'), certFinalData).then(() => {
+            try {
+                await push(ref(db, 'certificaciones_finales'), certFinalData);
                 const updates = {};
                 ordenesSeleccionadasIds.forEach(id => { updates[`/ordenes/${id}/certificadaStatus`] = numCertFinal; });
-                update(ref(db), updates).then(() => {
-                    alert("Certificación Final Procesada Correctamente.");
-                    generarCertificacionFinalPDF(certFinalData);
-                    document.getElementById('form-cert-final').reset();
-                    document.getElementById('cf-ordenes-container').innerHTML = "";
-                    initFormFechas();
-                });
-            });
+                await update(ref(db), updates);
+                alert("Certificación Final Procesada Correctamente.");
+                window.generarCertificacionFinalPDF(certFinalData);
+                document.getElementById('form-cert-final').reset();
+                const container = document.getElementById('cf-ordenes-container');
+                if (container) container.innerHTML = "";
+                initFormFechas();
+            } catch (error) {
+                alert("Error al procesar la certificación final: " + error.message);
+            }
         });
 
-        // --- LISTADO PESTAÑA 6 ---
         window.filtrarCertFinales = function() {
-            const emp = document.getElementById('f-cfl-emp').value;
+            const emp = document.getElementById('f-cfl-emp')?.value;
+            const mes = document.getElementById('f-cfl-mes')?.value;
+            const anio = document.getElementById('f-cfl-anio')?.value;
             const tbody = document.getElementById('tabla-certfinales-body');
+            if (!tbody) return;
             tbody.innerHTML = "";
             let contador = 0;
 
             for (let id in dataCertFinales) {
                 const cf = dataCertFinales[id];
-                if (emp && cf.empresa !== emp) continue;
+                if (emp && emp !== "Todas" && cf.empresa !== emp) continue;
+                if (mes && mes !== "Todos" && cf.mes !== mes) continue;
+                if (anio && anio !== "Todos" && cf.anio != anio) continue;
 
                 contador++;
                 tbody.innerHTML += `
@@ -1072,30 +1110,44 @@
                         <td class="p-3">${cf.anio}</td>
                         <td class="p-3">${cf.mes}</td>
                         <td class="p-3 font-bold text-indigo-600">${cf.numCertFinal}</td>
-                        <td class="p-3">${cf.empresa}</td>
+                        <td class="p-3">${escapeHtml(cf.empresa)}</td>
                         <td class="p-3 font-bold">$${cf.total.toFixed(2)}</td>
                         <td class="p-3">
                             <button onclick="reimprimirCertFinalPDF('${id}')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs font-medium">Reimprimir PDF</button>
                         </td>
                     </tr>`;
             }
-            document.getElementById('p6-cant').innerText = contador;
+            const p6Cant = document.getElementById('p6-cant');
+            if (p6Cant) p6Cant.innerText = contador;
         }
 
-        window.reimprimirOrdenPDF = function(id) { generarOrdenPDF(dataOrdenes[id]); }
-        window.reimprimirCertFinalPDF = function(id) { generarCertificacionFinalPDF(dataCertFinales[id]); }
+        window.reimprimirOrdenPDF = function(id) { 
+            if (dataOrdenes[id]) window.generarOrdenPDF(dataOrdenes[id]); 
+        }
+        
+        window.reimprimirCertFinalPDF = function(id) { 
+            if (dataCertFinales[id]) window.generarCertificacionFinalPDF(dataCertFinales[id]); 
+        }
 
-        // ========================== GENERACIÓN DE FORMATOS PDF (jsPDF) ==========================
-        const { jsPDF } = window.jspdf;
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
 
-        function generarOrdenPDF(o) {
+        window.generarOrdenPDF = function(o) {
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFont("Helvetica", "bold");
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(16);
             doc.text("ORDEN DE TRABAJO", 105, 15, { align: 'center' });
             
             doc.setFontSize(10);
-            doc.setFont("Helvetica", "normal");
+            doc.setFont("helvetica", "normal");
             doc.text(`N° Orden: ${String(o.numOrden).padStart(2, '0')}   |   Mes: ${o.mes}   |   Año: ${o.anio}   |   Fecha: ${o.fecha}`, 14, 23);
             doc.text(`Analista: ${o.usuario}`, 14, 28);
 
@@ -1161,9 +1213,10 @@
             doc.save(`Orden_Trabajo_${o.numOrden}.pdf`);
         }
 
-        function generarCertificacionObraPDF(o, c) {
+        window.generarCertificacionObraPDF = function(o, c) {
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFont("Helvetica", "bold");
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(15);
             doc.text(`CERTIFICACIÓN DE OBRA N° ${c.numCertificacion}`, 105, 15, { align: 'center' });
 
@@ -1204,9 +1257,10 @@
             doc.save(`Certificacion_Obra_${c.numCertificacion}.pdf`);
         }
 
-        function generarCertificacionFinalPDF(cf) {
+        window.generarCertificacionFinalPDF = function(cf) {
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFont("Helvetica", "bold");
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(16);
             doc.text("CERTIFICACIÓN FINAL DE CONTRATO", 105, 15, { align: 'center' });
 
@@ -1239,19 +1293,19 @@
             doc.save(`Certificacion_Final_${cf.numCertFinal}.pdf`);
         }
 
-        // ========================== PESTAÑA 7: REPORTE RESUMEN EJECUTIVO ==========================
         window.generarReportePDF = function() {
+            const { jsPDF } = window.jspdf;
             const fDesde = document.getElementById('rep-f-desde').value;
             const fHasta = document.getElementById('rep-f-hasta').value;
             const emp = document.getElementById('rep-empresa').value;
             const obra = document.getElementById('rep-obra').value;
 
             const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFont("Helvetica", "bold");
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(15);
             doc.text("REPORTE RESUMEN EJECUTIVO", 105, 15, { align: 'center' });
             doc.setFontSize(9);
-            doc.setFont("Helvetica", "normal");
+            doc.setFont("helvetica", "normal");
             doc.text(`Filtros -> Desde: ${fDesde || 'Min'} | Hasta: ${fHasta || 'Max'} | Empresa: ${emp || 'Todas'} | Obra: ${obra || 'Todos'}`, 14, 21);
 
             let cCurso = 0, cFinNoCert = 0, cFinCert = 0, totalDolares = 0;
@@ -1261,8 +1315,8 @@
                 const o = dataOrdenes[id];
                 if (fDesde && o.fecha < fDesde) continue;
                 if (fHasta && o.fecha > fHasta) continue;
-                if (emp && o.empresa !== emp) continue;
-                if (obra && o.trabajo !== obra) continue;
+                if (emp && emp !== "Todas" && o.empresa !== emp) continue;
+                if (obra && obra !== "Todos" && o.trabajo !== obra) continue;
 
                 totalDolares += o.presupuesto;
                 if (o.estado === "En Curso") cCurso++;
@@ -1305,7 +1359,6 @@
             doc.save("Reporte_Resumen_Gestion.pdf");
         }
 
-        // ========================== EXPORTACIONES EXCEL ==========================
         window.exportarExcel = function(tipo) {
             let matrix = [];
             let nombreArchivo = "export.xlsx";
@@ -1339,10 +1392,13 @@
             XLSX.writeFile(wb, nombreArchivo);
         }
 
-        // ========================== RESPALDOS ADMINISTRATIVOS JSON ==========================
-        window.exportarBackupJSON = function() {
-            if(!isAdmin) return;
-            get(ref(db)).then((snapshot) => {
+        window.exportarBackupJSON = async function() {
+            if(!isAdmin) {
+                alert("Acceso denegado. Solo administradores.");
+                return;
+            }
+            try {
+                const snapshot = await get(ref(db));
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(snapshot.val()));
                 const downloadAnchor = document.createElement('a');
                 downloadAnchor.setAttribute("href", dataStr);
@@ -1350,11 +1406,16 @@
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
                 downloadAnchor.remove();
-            });
+            } catch (error) {
+                alert("Error al exportar: " + error.message);
+            }
         }
 
-        window.importarBackupJSON = function() {
-            if(!isAdmin) return;
+        window.importarBackupJSON = async function() {
+            if(!isAdmin) {
+                alert("Acceso denegado. Solo administradores.");
+                return;
+            }
             const fileInput = document.getElementById('import-json-file');
             if (fileInput.files.length === 0) {
                 alert("Por favor, seleccione un archivo .json válido.");
@@ -1362,13 +1423,14 @@
             }
             const file = fileInput.files[0];
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const json = JSON.parse(e.target.result);
-                    set(ref(db), json).then(() => {
+                    if (confirm("ADVERTENCIA: Esto sobrescribirá TODOS los datos existentes. ¿Está seguro?")) {
+                        await set(ref(db), json);
                         alert("Base de datos restaurada e importada con total éxito.");
                         fileInput.value = "";
-                    });
+                    }
                 } catch (err) {
                     alert("Error leyendo el archivo JSON: " + err.message);
                 }
@@ -1383,8 +1445,13 @@
                 el.classList.add('border-transparent', 'text-gray-500');
             });
             
-            document.getElementById(tabId).classList.add('active');
-            const btn = [...document.querySelectorAll('.tab-btn')].find(b => b.getAttribute('onclick').includes(tabId));
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
+            
+            const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => {
+                const onclick = b.getAttribute('onclick');
+                return onclick && onclick.includes(tabId);
+            });
             if (btn) {
                 btn.classList.remove('border-transparent', 'text-gray-500');
                 btn.classList.add('border-indigo-600', 'text-indigo-600');
