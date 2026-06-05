@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Sistema de Gestión de Órdenes de Trabajo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
@@ -566,13 +565,15 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getDatabase, ref, set, push, get, child, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
+        // CONFIGURACIÓN CORREGIDA: Se añade explícitamente la propiedad databaseURL
         const firebaseConfig = {
             apiKey: "AIzaSyAvLUU_Qp17H7HChTvnqaqPKDwRMVq5XEM",
             authDomain: "pruebas-39fd2.firebaseapp.com",
             projectId: "pruebas-39fd2",
             storageBucket: "pruebas-39fd2.firebasestorage.app",
             messagingSenderId: "410782515212",
-            appId: "1:410782515212:web:277bd67f86c46f22786e29"
+            appId: "1:410782515212:web:277bd67f86c46f22786e29",
+            databaseURL: "https://pruebas-39fd2-default-rtdb.firebaseio.com" 
         };
 
         const app = initializeApp(firebaseConfig);
@@ -583,12 +584,11 @@
         let currentUser = null;
         let isAdmin = false;
 
-        // Estructuras de Memoria Local Indexada para Filtros Rápidos
         let dataEmpresas = {};
         let dataOrdenes = {};
         let dataCertFinales = {};
 
-        // --- MANEJO DE ZONA HORARIA CARACAS VENEZUELA (UTC -04:00) ---
+        // --- CONTROL DE ZONA HORARIA VENEZUELA (UTC -04:00) ---
         function getCaracasDate() {
             const d = new Date();
             const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
@@ -623,8 +623,7 @@
         }
 
         async function calcularSiguienteNumeroOrden(anio, mesNombre) {
-            const dbRef = ref(db, 'ordenes');
-            get(dbRef).then((snapshot) => {
+            get(ref(db, 'ordenes')).then((snapshot) => {
                 let maxNum = 0;
                 if (snapshot.exists()) {
                     const data = snapshot.val();
@@ -639,8 +638,7 @@
         }
 
         async function calcularSiguienteCertificacionFinal(anio, mesNum) {
-            const dbRef = ref(db, 'certificaciones_finales');
-            get(dbRef).then((snapshot) => {
+            get(ref(db, 'certificaciones_finales')).then((snapshot) => {
                 let maxCorrelativo = 0;
                 const prefijoMes = String(mesNum).padStart(2, '0');
                 if (snapshot.exists()) {
@@ -657,7 +655,7 @@
             });
         }
 
-        // --- AUTH CONTROLLERS ---
+        // --- MANEJO DE AUTENTICACIÓN ---
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -700,7 +698,7 @@
             }
         });
 
-        // --- REALTIME REAL DATA SYNCING ---
+        // --- SINCRONIZACIÓN DE REALTIME DATABASE ---
         function sincronizarRealtime() {
             onValue(ref(db, 'empresas'), (snapshot) => {
                 dataEmpresas = snapshot.val() || {};
@@ -718,7 +716,7 @@
             });
         }
 
-        // --- PESTAÑA 4: EMPRESAS ---
+        // --- CONTROL PESTAÑA 4: EMPRESAS ---
         document.getElementById('form-empresa').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('emp-id').value;
@@ -800,7 +798,7 @@
             document.getElementById('ord-emp-rif').value = "";
         }
 
-        // --- SECCIONES OPCIONALES ---
+        // --- CONTROL DE CAMPOS DINÁMICOS ---
         window.toggleOpcional = function(id, status) {
             document.getElementById(id).classList.toggle('hidden', !status);
         }
@@ -814,11 +812,9 @@
             document.getElementById(`${prefix}-tot`).innerText = (pu * pts).toFixed(2);
         }
 
-        // --- CREACIÓN ÓRDENES TRABAJO ---
+        // --- CREACIÓN DE ÓRDENES ---
         document.getElementById('form-orden').addEventListener('submit', (e) => {
             e.preventDefault();
-            const fVzla = getCaracasDate();
-            
             const orden = {
                 numOrden: parseInt(document.getElementById('ord-num').value, 10),
                 mes: document.getElementById('ord-mes').value,
@@ -875,12 +871,11 @@
             });
         });
 
-        // --- FILTROS Y RENDERS PESTAÑA 2: EN CURSO ---
+        // --- FILTRADOS Y RENDERS ---
         window.filtrarEnCurso = function() {
             const busq = document.getElementById('f-encurso-busq').value;
             const emp = document.getElementById('f-encurso-emp').value;
             const obra = document.getElementById('f-encurso-obra').value;
-            
             const tbody = document.getElementById('tabla-encurso-body');
             tbody.innerHTML = "";
             let contador = 0;
@@ -910,12 +905,10 @@
             document.getElementById('p1-cant').innerText = contador;
         }
 
-        // --- FILTROS Y RENDERS PESTAÑA 3: FINALIZADAS ---
         window.filtrarFinalizadas = function() {
             const busq = document.getElementById('f-fin-busq').value;
             const emp = document.getElementById('f-fin-emp').value;
             const obra = document.getElementById('f-fin-obra').value;
-
             const tbody = document.getElementById('tabla-finalizadas-body');
             tbody.innerHTML = "";
             let contador = 0;
@@ -945,7 +938,7 @@
             document.getElementById('p3-cant').innerText = contador;
         }
 
-        // --- MODAL FINALIZAR -> CERTIFICACIÓN DE OBRA ---
+        // --- VENTANA MODAL CERTIFICACIÓN DE OBRA ---
         window.abrirCertificarModal = function(id) {
             const o = dataOrdenes[id];
             const fVzla = getCaracasDate();
@@ -995,7 +988,7 @@
             });
         });
 
-        // --- PESTAÑA 5: CERTIFICACIÓN FINAL ---
+        // --- PESTAÑA 5: CERTIFICACIÓN FINAL CONJUNTA ---
         window.cargarOrdenesNoCertificadas = function(empNombre) {
             const container = document.getElementById('cf-ordenes-container');
             container.innerHTML = "";
@@ -1024,11 +1017,7 @@
         window.calcTotalCertFinal = function() {
             const chks = document.getElementsByName('cf-chk-orden');
             let sum = 0;
-            chks.forEach(chk => {
-                if (chk.checked) {
-                    sum += dataOrdenes[chk.value].presupuesto;
-                }
-            });
+            chks.forEach(chk => { if (chk.checked) sum += dataOrdenes[chk.value].presupuesto; });
             document.getElementById('cf-total-sum').innerText = sum.toFixed(2);
         }
 
@@ -1055,9 +1044,7 @@
 
             push(ref(db, 'certificaciones_finales'), certFinalData).then(() => {
                 const updates = {};
-                ordenesSeleccionadasIds.forEach(id => {
-                    updates[`/ordenes/${id}/certificadaStatus`] = numCertFinal;
-                });
+                ordenesSeleccionadasIds.forEach(id => { updates[`/ordenes/${id}/certificadaStatus`] = numCertFinal; });
                 update(ref(db), updates).then(() => {
                     alert("Certificación Final Procesada Correctamente.");
                     generarCertificacionFinalPDF(certFinalData);
@@ -1068,7 +1055,7 @@
             });
         });
 
-        // --- PESTAÑA 6: CERTIFICACIONES FINALES LISTA ---
+        // --- LISTADO PESTAÑA 6 ---
         window.filtrarCertFinales = function() {
             const emp = document.getElementById('f-cfl-emp').value;
             const tbody = document.getElementById('tabla-certfinales-body');
@@ -1095,7 +1082,6 @@
             document.getElementById('p6-cant').innerText = contador;
         }
 
-        // --- REIMPRESIONES PDF DESDE LISTADO ---
         window.reimprimirOrdenPDF = function(id) { generarOrdenPDF(dataOrdenes[id]); }
         window.reimprimirCertFinalPDF = function(id) { generarCertificacionFinalPDF(dataCertFinales[id]); }
 
@@ -1113,7 +1099,6 @@
             doc.text(`N° Orden: ${String(o.numOrden).padStart(2, '0')}   |   Mes: ${o.mes}   |   Año: ${o.anio}   |   Fecha: ${o.fecha}`, 14, 23);
             doc.text(`Analista: ${o.usuario}`, 14, 28);
 
-            // Seccion I
             doc.autoTable({
                 startY: 32,
                 head: [['I. INFORMACIÓN GENERAL', '']],
@@ -1127,7 +1112,6 @@
                 theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 9 }
             });
 
-            // Seccion II
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 4,
                 head: [['II. INFORMACIÓN DE LA CONTRATISTA', '']],
@@ -1139,7 +1123,6 @@
                 theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 9 }
             });
 
-            // Seccion III
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 4,
                 head: [['III. INFORMACIÓN DEL TRABAJO OBRA', '']],
@@ -1153,7 +1136,6 @@
                 theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 9 }
             });
 
-            // Secciones Opcionales (Condicionado para encajar en 1 Sola Hoja si existen)
             if (o.opcionalNodo || o.opcionalIsp) {
                 let bodyOpc = [];
                 if (o.opcionalNodo) {
@@ -1176,7 +1158,6 @@
                     theme: 'plain', headStyles: { fillColor: [37, 99, 235] }, styles: { fontSize: 8 }
                 });
             }
-
             doc.save(`Orden_Trabajo_${o.numOrden}.pdf`);
         }
 
@@ -1220,7 +1201,6 @@
                 body: [[c.desviacionesDetalle]],
                 theme: 'striped', headStyles: { fillColor: [220, 38, 38] }
             });
-
             doc.save(`Certificacion_Obra_${c.numCertificacion}.pdf`);
         }
 
@@ -1256,11 +1236,10 @@
 
             doc.setFontSize(12);
             doc.text(`TOTAL CERTIFICADO: $${cf.total.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
-
             doc.save(`Certificacion_Final_${cf.numCertFinal}.pdf`);
         }
 
-        // ========================== PESTAÑA 7: GENERACIÓN DE REPORTE RESUMEN (1 O MAX 2 HOJAS) ==========================
+        // ========================== PESTAÑA 7: REPORTE RESUMEN EJECUTIVO ==========================
         window.generarReportePDF = function() {
             const fDesde = document.getElementById('rep-f-desde').value;
             const fHasta = document.getElementById('rep-f-hasta').value;
@@ -1302,7 +1281,6 @@
                 ]);
             }
 
-            // Cuadro Métricas
             doc.autoTable({
                 startY: 25,
                 head: [['Métrica de Control', 'Cantidad']],
@@ -1315,7 +1293,6 @@
                 theme: 'grid', headStyles: { fillColor: [79, 70, 229] }
             });
 
-            // Tabla Desglose (Ajustada para entrar dentro de los límites de página solicitados)
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 5,
                 head: [['N°', 'Empresa', 'Trabajo Obra', 'Estado', 'Cert. Final', 'Monto']],
@@ -1328,7 +1305,7 @@
             doc.save("Reporte_Resumen_Gestion.pdf");
         }
 
-        // ========================== EXPORTACIONES A EXCEL (SheetJS) ==========================
+        // ========================== EXPORTACIONES EXCEL ==========================
         window.exportarExcel = function(tipo) {
             let matrix = [];
             let nombreArchivo = "export.xlsx";
@@ -1362,7 +1339,7 @@
             XLSX.writeFile(wb, nombreArchivo);
         }
 
-        // ========================== PESTAÑA 8: RESPALDOS ADMINISTRATIVOS JSON ==========================
+        // ========================== RESPALDOS ADMINISTRATIVOS JSON ==========================
         window.exportarBackupJSON = function() {
             if(!isAdmin) return;
             get(ref(db)).then((snapshot) => {
@@ -1399,7 +1376,6 @@
             reader.readAsText(file);
         }
 
-        // Switcher global de pestañas UI
         window.switchTab = function(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => {
