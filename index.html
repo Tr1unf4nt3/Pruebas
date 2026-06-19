@@ -323,7 +323,7 @@
                         <thead>
                             <tr class="bg-gray-100 border-b">
                                 <th class="p-3">Año</th><th class="p-3">Mes</th><th class="p-3">Número de Orden</th><th class="p-3">Empresa</th><th class="p-3">Trabajo Obra a Realizar</th><th class="p-3">Estado</th><th class="p-3">Acciones</th>
-                            </tr>
+                            </td>
                         </thead>
                         <tbody id="tabla-encurso-body"></tbody>
                     </table>
@@ -716,19 +716,53 @@
             });
         }
 
-        document.getElementById('form-empresa').addEventListener('submit', (e) => {
+        // Función para autollenar los campos de empresa
+        window.autoFillEmpresa = function(empNombre) {
+            if (!empNombre || empNombre === "") {
+                document.getElementById('ord-emp-resp').value = "";
+                document.getElementById('ord-emp-rif').value = "";
+                return;
+            }
+            
+            for (let id in dataEmpresas) {
+                if (dataEmpresas[id].nombre === empNombre) {
+                    document.getElementById('ord-emp-resp').value = dataEmpresas[id].responsable || "";
+                    document.getElementById('ord-emp-rif').value = dataEmpresas[id].rif || "";
+                    return;
+                }
+            }
+            
+            document.getElementById('ord-emp-resp').value = "";
+            document.getElementById('ord-emp-rif').value = "";
+        }
+
+        document.getElementById('form-empresa').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('emp-id').value;
             const empresaData = {
-                nombre: document.getElementById('emp-nombre').value,
-                responsable: document.getElementById('emp-responsable').value,
-                rif: document.getElementById('emp-rif-val').value
+                nombre: document.getElementById('emp-nombre').value.trim(),
+                responsable: document.getElementById('emp-responsable').value.trim(),
+                rif: document.getElementById('emp-rif-val').value.trim()
             };
-
-            if (id) {
-                set(ref(db, `empresas/${id}`), empresaData).then(() => resetEmpresaForm());
-            } else {
-                push(ref(db, 'empresas'), empresaData).then(() => resetEmpresaForm());
+            
+            if (!empresaData.nombre || !empresaData.responsable || !empresaData.rif) {
+                alert("Por favor, complete todos los campos de la empresa.");
+                return;
+            }
+            
+            try {
+                if (id) {
+                    await set(ref(db, `empresas/${id}`), empresaData);
+                    alert("Empresa actualizada con éxito.");
+                } else {
+                    const newRef = push(ref(db, 'empresas'));
+                    await set(newRef, empresaData);
+                    alert("Empresa agregada con éxito.");
+                }
+                resetEmpresaForm();
+            } catch (error) {
+                console.error("Error al guardar empresa:", error);
+                alert("Error al guardar la empresa: " + error.message);
             }
         });
 
@@ -769,36 +803,50 @@
             document.getElementById('emp-form-title').innerText = "Editar Empresa";
         }
 
-        window.eliminarEmpresa = function(id) {
+        window.eliminarEmpresa = async function(id) {
             if (confirm("¿Seguro que desea eliminar esta empresa?")) {
-                remove(ref(db, `empresas/${id}`));
+                try {
+                    await remove(ref(db, `empresas/${id}`));
+                    alert("Empresa eliminada con éxito.");
+                } catch (error) {
+                    alert("Error al eliminar la empresa: " + error.message);
+                }
             }
         }
 
         function updateEmpresasDropdowns() {
             const dropdowns = ['ord-empresa', 'cf-empresa', 'f-encurso-emp', 'f-fin-emp', 'f-cfl-emp', 'rep-empresa'];
+            
             dropdowns.forEach(ddId => {
                 const element = document.getElementById(ddId);
                 if (!element) return;
+                
                 const savedVal = element.value;
-                element.innerHTML = (ddId.startsWith('f-') || ddId.startsWith('rep-')) ? '<option value="">Todas</option>' : '<option value="">Seleccione una empresa...</option>';
+                
+                if (ddId.startsWith('f-') || ddId.startsWith('rep-')) {
+                    element.innerHTML = '<option value="">Todas</option>';
+                } else {
+                    element.innerHTML = '<option value="">Seleccione una empresa...</option>';
+                }
+                
                 for (let id in dataEmpresas) {
                     element.innerHTML += `<option value="${escapeHtml(dataEmpresas[id].nombre)}">${escapeHtml(dataEmpresas[id].nombre)}</option>`;
                 }
-                element.value = savedVal;
-            });
-        }
-
-        window.autoFillEmpresa = function(empNombre) {
-            for (let id in dataEmpresas) {
-                if (dataEmpresas[id].nombre === empNombre) {
-                    document.getElementById('ord-emp-resp').value = dataEmpresas[id].responsable;
-                    document.getElementById('ord-emp-rif').value = dataEmpresas[id].rif;
-                    return;
+                
+                if (savedVal && savedVal !== "") {
+                    element.value = savedVal;
                 }
+            });
+            
+            // Configurar el evento change para el select de empresas en la orden
+            const ordEmpresa = document.getElementById('ord-empresa');
+            if (ordEmpresa) {
+                ordEmpresa.removeEventListener('change', window.autoFillEmpresaHandler);
+                window.autoFillEmpresaHandler = function() {
+                    window.autoFillEmpresa(this.value);
+                };
+                ordEmpresa.addEventListener('change', window.autoFillEmpresaHandler);
             }
-            document.getElementById('ord-emp-resp').value = "";
-            document.getElementById('ord-emp-rif').value = "";
         }
 
         window.toggleOpcional = function(id, status) {
@@ -827,6 +875,26 @@
         document.getElementById('form-orden').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const empresaNombre = document.getElementById('ord-empresa').value;
+            let empresaResp = document.getElementById('ord-emp-resp').value;
+            let empresaRif = document.getElementById('ord-emp-rif').value;
+            
+            if (!empresaNombre) {
+                alert("Por favor, seleccione una empresa.");
+                return;
+            }
+            
+            // Si los campos no se llenaron automáticamente, buscarlos manualmente
+            if (!empresaResp || !empresaRif) {
+                for (let id in dataEmpresas) {
+                    if (dataEmpresas[id].nombre === empresaNombre) {
+                        empresaResp = dataEmpresas[id].responsable || "";
+                        empresaRif = dataEmpresas[id].rif || "";
+                        break;
+                    }
+                }
+            }
+            
             const orden = {
                 numOrden: parseInt(document.getElementById('ord-num').value, 10),
                 mes: document.getElementById('ord-mes').value,
@@ -839,9 +907,9 @@
                 zona: document.getElementById('ord-zona').value,
                 solicita: document.getElementById('ord-solicita').value,
                 autoriza: document.getElementById('ord-autoriza').value,
-                empresa: document.getElementById('ord-empresa').value,
-                empResponsable: document.getElementById('ord-emp-resp').value,
-                empRif: document.getElementById('ord-emp-rif').value,
+                empresa: empresaNombre,
+                empResponsable: empresaResp,
+                empRif: empresaRif,
                 ubicacion: document.getElementById('ord-ubicacion').value,
                 descripcion: document.getElementById('ord-descripcion').value,
                 manoObra: document.getElementById('ord-mano').value,
@@ -881,7 +949,10 @@
                 document.getElementById('form-orden').reset();
                 window.hideOpcionales();
                 initFormFechas();
+                document.getElementById('ord-emp-resp').value = "";
+                document.getElementById('ord-emp-rif').value = "";
             } catch (error) {
+                console.error("Error al guardar la orden:", error);
                 alert("Error al guardar la orden: " + error.message);
             }
         });
@@ -1149,17 +1220,17 @@
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
             doc.text(`N° Orden: ${String(o.numOrden).padStart(2, '0')}   |   Mes: ${o.mes}   |   Año: ${o.anio}   |   Fecha: ${o.fecha}`, 14, 23);
-            doc.text(`Analista: ${o.usuario}`, 14, 28);
+            doc.text(`Analista: ${o.usuario || ''}`, 14, 28);
 
             doc.autoTable({
                 startY: 32,
                 head: [['I. INFORMACIÓN GENERAL', '']],
                 body: [
-                    ['Trabajo Obra a realizar:', o.trabajo],
-                    ['Municipio / Zona:', `${o.municipio} - ${o.zona}`],
-                    ['Tipo de Contrato:', o.contrato],
-                    ['Responsable Solicita:', o.solicita],
-                    ['Responsable Autoriza:', o.autoriza]
+                    ['Trabajo Obra a realizar:', o.trabajo || ''],
+                    ['Municipio / Zona:', `${o.municipio || ''} - ${o.zona || ''}`],
+                    ['Tipo de Contrato:', o.contrato || ''],
+                    ['Responsable Solicita:', o.solicita || ''],
+                    ['Responsable Autoriza:', o.autoriza || '']
                 ],
                 theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 9 }
             });
@@ -1168,9 +1239,9 @@
                 startY: doc.lastAutoTable.finalY + 4,
                 head: [['II. INFORMACIÓN DE LA CONTRATISTA', '']],
                 body: [
-                    ['Empresa:', o.empresa],
-                    ['Responsable:', o.empResponsable],
-                    ['RIF:', o.empRif]
+                    ['Empresa:', o.empresa || ''],
+                    ['Responsable:', o.empResponsable || ''],
+                    ['RIF:', o.empRif || '']
                 ],
                 theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 9 }
             });
@@ -1179,11 +1250,11 @@
                 startY: doc.lastAutoTable.finalY + 4,
                 head: [['III. INFORMACIÓN DEL TRABAJO OBRA', '']],
                 body: [
-                    ['Ubicación:', o.ubicacion],
-                    ['Descripción:', o.descripcion],
-                    ['Mano de Obra / Materiales / Equipos:', `${o.manoObra} / ${o.materiales} / ${o.equipos}`],
-                    ['Fechas de Ejecución:', `Inicio: ${o.fechaInicio}  -  Fin: ${o.fechaFin}`],
-                    ['Presupuesto Total:', `$${o.presupuesto.toFixed(2)}`]
+                    ['Ubicación:', o.ubicacion || ''],
+                    ['Descripción:', o.descripcion || ''],
+                    ['Mano de Obra / Materiales / Equipos:', `${o.manoObra || ''} / ${o.materiales || ''} / ${o.equipos || ''}`],
+                    ['Fechas de Ejecución:', `Inicio: ${o.fechaInicio || ''}  -  Fin: ${o.fechaFin || ''}`],
+                    ['Presupuesto Total:', `$${(o.presupuesto || 0).toFixed(2)}`]
                 ],
                 theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 9 }
             });
