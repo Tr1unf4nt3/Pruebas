@@ -323,7 +323,7 @@
                         <thead>
                             <tr class="bg-gray-100 border-b">
                                 <th class="p-3">Año</th><th class="p-3">Mes</th><th class="p-3">Número de Orden</th><th class="p-3">Empresa</th><th class="p-3">Trabajo Obra a Realizar</th><th class="p-3">Estado</th><th class="p-3">Acciones</th>
-                            </td>
+                            </tr>
                         </thead>
                         <tbody id="tabla-encurso-body"></tbody>
                     </table>
@@ -709,6 +709,11 @@
                 dataOrdenes = snapshot.val() || {};
                 filtrarEnCurso();
                 filtrarFinalizadas();
+                // Actualizar órdenes en certificación final si la pestaña está activa
+                const cfEmpresa = document.getElementById('cf-empresa');
+                if (cfEmpresa && cfEmpresa.value) {
+                    cargarOrdenesNoCertificadas(cfEmpresa.value);
+                }
             });
             onValue(ref(db, 'certificaciones_finales'), (snapshot) => {
                 dataCertFinales = snapshot.val() || {};
@@ -846,6 +851,16 @@
                     window.autoFillEmpresa(this.value);
                 };
                 ordEmpresa.addEventListener('change', window.autoFillEmpresaHandler);
+            }
+
+            // Configurar el evento change para el select de empresas en certificación final
+            const cfEmpresa = document.getElementById('cf-empresa');
+            if (cfEmpresa) {
+                cfEmpresa.removeEventListener('change', window.cargarOrdenesHandler);
+                window.cargarOrdenesHandler = function() {
+                    cargarOrdenesNoCertificadas(this.value);
+                };
+                cfEmpresa.addEventListener('change', window.cargarOrdenesHandler);
             }
         }
 
@@ -1092,13 +1107,22 @@
         window.cargarOrdenesNoCertificadas = function(empNombre) {
             const container = document.getElementById('cf-ordenes-container');
             if (!container) return;
+            
+            if (!empNombre || empNombre === "") {
+                container.innerHTML = '<p class="text-sm text-gray-500 italic">Seleccione una empresa para listar órdenes finalizadas no certificadas.</p>';
+                document.getElementById('cf-total-sum').innerText = "0.00";
+                return;
+            }
+            
             container.innerHTML = "";
             let hasOrdenes = false;
+            let total = 0;
 
             for (let id in dataOrdenes) {
                 const o = dataOrdenes[id];
                 if (o.empresa === empNombre && o.estado === "Finalizado" && o.certificadaStatus === "No Certificado") {
                     hasOrdenes = true;
+                    total += o.presupuesto || 0;
                     container.innerHTML += `
                         <div class="flex items-center justify-between p-2 hover:bg-gray-50 border-b">
                             <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -1109,16 +1133,23 @@
                         </div>`;
                 }
             }
+            
             if (!hasOrdenes) {
                 container.innerHTML = '<p class="text-sm text-gray-500 italic">No se encontraron órdenes finalizadas pendientes para esta empresa.</p>';
+                document.getElementById('cf-total-sum').innerText = "0.00";
+            } else {
+                document.getElementById('cf-total-sum').innerText = total.toFixed(2);
             }
-            window.calcTotalCertFinal();
         }
 
         window.calcTotalCertFinal = function() {
             const chks = document.getElementsByName('cf-chk-orden');
             let sum = 0;
-            chks.forEach(chk => { if (chk.checked && dataOrdenes[chk.value]) sum += dataOrdenes[chk.value].presupuesto; });
+            chks.forEach(chk => { 
+                if (chk.checked && dataOrdenes[chk.value]) {
+                    sum += dataOrdenes[chk.value].presupuesto || 0;
+                }
+            });
             const totalSpan = document.getElementById('cf-total-sum');
             if (totalSpan) totalSpan.innerText = sum.toFixed(2);
         }
@@ -1153,7 +1184,8 @@
                 window.generarCertificacionFinalPDF(certFinalData);
                 document.getElementById('form-cert-final').reset();
                 const container = document.getElementById('cf-ordenes-container');
-                if (container) container.innerHTML = "";
+                if (container) container.innerHTML = '<p class="text-sm text-gray-500 italic">Seleccione una empresa para listar órdenes finalizadas no certificadas.</p>';
+                document.getElementById('cf-total-sum').innerText = "0.00";
                 initFormFechas();
             } catch (error) {
                 alert("Error al procesar la certificación final: " + error.message);
@@ -1526,6 +1558,14 @@
             if (btn) {
                 btn.classList.remove('border-transparent', 'text-gray-500');
                 btn.classList.add('border-indigo-600', 'text-indigo-600');
+            }
+
+            // Si se cambia a la pestaña de certificación final, cargar las órdenes si hay empresa seleccionada
+            if (tabId === 'tab-cert-final') {
+                const cfEmpresa = document.getElementById('cf-empresa');
+                if (cfEmpresa && cfEmpresa.value) {
+                    cargarOrdenesNoCertificadas(cfEmpresa.value);
+                }
             }
         }
     </script>
